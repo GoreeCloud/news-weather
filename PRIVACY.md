@@ -30,7 +30,9 @@ The product may retain bounded local state needed for useful operation, includin
 
 ## Weather freshness
 
-Cached weather must include clear freshness context and must never be presented as current when stale.
+The current Development source keeps at most one last-successful normalized weather snapshot for the saved manual-place query, bounded to 24 hours. Changing or clearing the manual place invalidates that cache. Cached weather is explicitly identified as cached/stale and retains its last-update context while a live refresh is attempted.
+
+The Open-Meteo Development adapter persists the user's place text, not the precise coordinates returned by geocoding. Resolved coordinates are used transiently for the forecast request.
 
 ## Accounts and synchronization
 
