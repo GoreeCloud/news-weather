@@ -203,24 +203,28 @@ function parseForecast(
     throw new Error("Weather provider forecast is missing current, hourly, or daily data.");
   }
 
+  const apparentTemperature = optionalNumber(currentRaw, "apparent_temperature");
+  const relativeHumidity = optionalNumber(currentRaw, "relative_humidity_2m");
+  const currentPrecipitation = optionalNumber(currentRaw, "precipitation");
+  const currentWindSpeed = optionalNumber(currentRaw, "wind_speed_10m");
+  const currentWindDirection = optionalNumber(currentRaw, "wind_direction_10m");
+
   const current: CurrentConditions = {
     time: requiredString(currentRaw, "time"),
     temperatureCelsius: requiredNumber(currentRaw, "temperature_2m"),
     weatherCode: requiredNumber(currentRaw, "weather_code"),
-    ...(optionalNumber(currentRaw, "apparent_temperature") !== undefined
-      ? { apparentTemperatureCelsius: optionalNumber(currentRaw, "apparent_temperature") }
+    ...(apparentTemperature !== undefined
+      ? { apparentTemperatureCelsius: apparentTemperature }
       : {}),
-    ...(optionalNumber(currentRaw, "relative_humidity_2m") !== undefined
-      ? { relativeHumidityPercent: optionalNumber(currentRaw, "relative_humidity_2m") }
+    ...(relativeHumidity !== undefined
+      ? { relativeHumidityPercent: relativeHumidity }
       : {}),
-    ...(optionalNumber(currentRaw, "precipitation") !== undefined
-      ? { precipitationMm: optionalNumber(currentRaw, "precipitation") }
+    ...(currentPrecipitation !== undefined
+      ? { precipitationMm: currentPrecipitation }
       : {}),
-    ...(optionalNumber(currentRaw, "wind_speed_10m") !== undefined
-      ? { windSpeedKmh: optionalNumber(currentRaw, "wind_speed_10m") }
-      : {}),
-    ...(optionalNumber(currentRaw, "wind_direction_10m") !== undefined
-      ? { windDirectionDegrees: optionalNumber(currentRaw, "wind_direction_10m") }
+    ...(currentWindSpeed !== undefined ? { windSpeedKmh: currentWindSpeed } : {}),
+    ...(currentWindDirection !== undefined
+      ? { windDirectionDegrees: currentWindDirection }
       : {}),
   };
 
