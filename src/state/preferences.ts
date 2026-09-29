@@ -1,4 +1,4 @@
-import type { ThemePreference } from "../config/product";
+import type { TextSizePreference, ThemePreference } from "../config/product";
 import type {
   PrecipitationUnit,
   TemperatureUnit,
@@ -12,6 +12,7 @@ export interface Preferences {
   readonly hintsEnabled: boolean;
   readonly manualWeatherLocation: string;
   readonly theme: ThemePreference;
+  readonly textSize: TextSizePreference;
   readonly temperatureUnit: TemperatureUnit;
   readonly windUnit: WindUnit;
   readonly precipitationUnit: PrecipitationUnit;
@@ -22,6 +23,7 @@ export const DEFAULT_PREFERENCES: Preferences = Object.freeze({
   hintsEnabled: true,
   manualWeatherLocation: "",
   theme: "system",
+  textSize: "system",
   temperatureUnit: "celsius",
   windUnit: "kmh",
   precipitationUnit: "mm",
@@ -29,6 +31,10 @@ export const DEFAULT_PREFERENCES: Preferences = Object.freeze({
 
 function isThemePreference(value: unknown): value is ThemePreference {
   return value === "system" || value === "light" || value === "dark";
+}
+
+function isTextSizePreference(value: unknown): value is TextSizePreference {
+  return value === "system" || value === "large" || value === "extra-large";
 }
 
 function isTemperatureUnit(value: unknown): value is TemperatureUnit {
@@ -59,6 +65,7 @@ export function loadPreferences(): Preferences {
           ? parsed.manualWeatherLocation.slice(0, 160)
           : "",
       theme: isThemePreference(parsed.theme) ? parsed.theme : "system",
+      textSize: isTextSizePreference(parsed.textSize) ? parsed.textSize : "system",
       temperatureUnit: isTemperatureUnit(parsed.temperatureUnit)
         ? parsed.temperatureUnit
         : "celsius",
