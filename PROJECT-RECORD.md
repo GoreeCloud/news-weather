@@ -124,3 +124,46 @@ The Source Foundation workflow verifies repository baseline, strict TypeScript c
 
 This milestone does **not** establish representative browser runtime acceptance, live Open-Meteo endpoint acceptance, Android/Linux/Windows build or device acceptance, GoreeCloud platform-system acceptance, signed release artifacts, Production status, Release Candidate status, or Stable qualification.
 
+## 2026-09-29 — Provider Tests, Weather Units, and Text-Size Accessibility Integrated
+
+### Provider and Cache Contract Tests
+
+PR #8 added deterministic Node 24 unit coverage for the current Development provider boundaries. Exact head `5afef4191d8971fd369c24d2dea15a837dce8250` passed:
+
+- Source Foundation run `36546118757`.
+- Unit Tests run `36546118799`.
+
+The tests cover bounded weather-cache behavior, Open-Meteo normalization and coordinate-minimization boundaries, GoreeCloud Feeds `0.1.0-dev` capability compatibility, and fail-closed Development endpoint restrictions.
+
+### Weather Presentation Units
+
+PR #9 added local presentation-unit preferences while preserving metric normalization in provider and cache models. Exact head `55d4f6a7f27e1c9553238359485a2e9dcb151d4e` passed:
+
+- Source Foundation run `36546673081`.
+- Unit Tests run `36546673063`.
+
+Implemented preferences include:
+
+- Celsius or Fahrenheit.
+- km/h or mph.
+- Millimeters or inches.
+- Legacy-safe defaults for existing preference records.
+- Deterministic conversion tests.
+
+The merged authoritative revision for this milestone is `a0b374714ccf0fb6e1eb85b9156cbd3c8278b414`.
+
+### Text-Size Accessibility
+
+PR #10 added local text-size personalization that builds on browser/platform scaling instead of replacing it. Exact head `f5cbfe1c57e922defa6a956d94d8b6f7c9c3f1d1` passed:
+
+- Source Foundation run `36546996822`.
+- Unit Tests run `36546996814`.
+
+Implemented choices are system/default, large, and extra large. The Settings dialog is viewport-bounded and scrollable so increased text size does not make controls unreachable.
+
+The merged authoritative revision for this milestone is `63aa9b8b27f71692e5a713ac37cc33baaac4e9a5`.
+
+### Verification Boundary
+
+These milestones strengthen source correctness and accessibility foundations. They do not establish representative rendered accessibility acceptance, assistive-technology acceptance, native-device acceptance, Glaze UI downstream acceptance, Production, Release Candidate, or Stable qualification.
+
