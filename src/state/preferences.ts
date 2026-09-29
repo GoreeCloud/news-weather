@@ -4,6 +4,7 @@ import type {
   TemperatureUnit,
   WindUnit,
 } from "../weather-units";
+import { sanitizeSavedWeatherLocations } from "../weather-locations";
 
 const STORAGE_KEY = "goreecloud.newsweather.preferences.v1";
 
@@ -11,6 +12,7 @@ export interface Preferences {
   readonly onboardingComplete: boolean;
   readonly hintsEnabled: boolean;
   readonly manualWeatherLocation: string;
+  readonly savedWeatherLocations: readonly string[];
   readonly theme: ThemePreference;
   readonly textSize: TextSizePreference;
   readonly temperatureUnit: TemperatureUnit;
@@ -22,6 +24,7 @@ export const DEFAULT_PREFERENCES: Preferences = Object.freeze({
   onboardingComplete: false,
   hintsEnabled: true,
   manualWeatherLocation: "",
+  savedWeatherLocations: [],
   theme: "system",
   textSize: "system",
   temperatureUnit: "celsius",
@@ -64,6 +67,7 @@ export function loadPreferences(): Preferences {
         typeof parsed.manualWeatherLocation === "string"
           ? parsed.manualWeatherLocation.slice(0, 160)
           : "",
+      savedWeatherLocations: sanitizeSavedWeatherLocations(parsed.savedWeatherLocations),
       theme: isThemePreference(parsed.theme) ? parsed.theme : "system",
       textSize: isTextSizePreference(parsed.textSize) ? parsed.textSize : "system",
       temperatureUnit: isTemperatureUnit(parsed.temperatureUnit)
