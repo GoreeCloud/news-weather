@@ -1,19 +1,34 @@
 import { PRODUCT, type Route, type ThemePreference } from "./config/product";
-import { UnavailableFeedsClient } from "./integrations/feeds";
-import { UnavailableWeatherProvider } from "./integrations/weather";
+import {
+  createFeedsClient,
+  type NewsFeedStatus,
+} from "./integrations/feeds";
+import {
+  OpenMeteoWeatherProvider,
+  weatherCodeDescription,
+  type WeatherForecast,
+} from "./integrations/weather";
 import {
   loadPreferences,
   savePreferences,
   type Preferences,
 } from "./state/preferences";
 
-const feedsClient = new UnavailableFeedsClient();
-const weatherProvider = new UnavailableWeatherProvider();
+const feedsClient = createFeedsClient();
+const weatherProvider = new OpenMeteoWeatherProvider();
+
+interface WeatherRuntimeState {
+  loading: boolean;
+  error: string | null;
+  forecast: WeatherForecast | null;
+}
 
 interface RuntimeState {
   route: Route;
   settingsOpen: boolean;
   preferences: Preferences;
+  weather: WeatherRuntimeState;
+  feedsStatus: NewsFeedStatus | null;
 }
 
 function escapeHtml(value: string): string {
@@ -38,6 +53,59 @@ function routeLabel(route: Route): string {
 
 function applyTheme(theme: ThemePreference): void {
   document.documentElement.dataset.theme = theme;
+}
+
+function temperature(value: number): string {
+  return `${Math.round(value)}°`;
+}
+
+function percentage(value: number | undefined): string {
+  return value === undefined ? "—" : `${Math.round(value)}%`;
+}
+
+function millimeters(value: number | undefined): string {
+  return value === undefined ? "—" : `${value.toFixed(value < 10 ? 1 : 0)} mm`;
+}
+
+function formatLocation(forecast: WeatherForecast): string {
+  const values = [
+    forecast.location.label,
+    forecast.location.admin1,
+    forecast.location.country,
+  ].filter((value, index, all): value is string => {
+    return typeof value === "string" && value.length > 0 && all.indexOf(value) === index;
+  });
+
+  return values.join(", ");
+}
+
+function formatLastUpdated(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.valueOf())
+    ? "Updated recently"
+    : `Updated ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+}
+
+function hourLabel(value: string): string {
+  const time = value.split("T")[1];
+  if (!time) return value;
+  const [hourText, minuteText] = time.split(":");
+  const hour = Number(hourText);
+  if (!Number.isFinite(hour)) return time;
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minuteText ?? "00"} ${suffix}`;
+}
+
+function dateLabel(value: string): string {
+  const date = new Date(`${value}T12:00:00Z`);
+  if (Number.isNaN(date.valueOf())) return value;
+  return date.toLocaleDateString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 function navigation(state: RuntimeState): string {
@@ -71,8 +139,8 @@ function onboarding(state: RuntimeState): string {
         <p class="eyebrow">First use</p>
         <h2 id="onboarding-title">News and weather, without the noise.</h2>
         <p>
-          Choose your news sources later through GoreeCloud Feeds. For weather,
-          you can start with a manual location—location permission is not required.
+          News will come from sources you choose through GoreeCloud Feeds.
+          Weather can start with a manual place—GPS permission is not required.
         </p>
       </div>
 
@@ -86,6 +154,11 @@ function onboarding(state: RuntimeState): string {
           placeholder="City, ZIP, postal code, or place"
           value="${location}"
         />
+        <small>
+          Development weather uses Open-Meteo. Saving a place sends that text to
+          its geocoding API and the resolved coordinates to its forecast API.
+          This app stores the place text, not those precise coordinates.
+        </small>
       </label>
 
       <label class="check-row">
@@ -113,16 +186,76 @@ function hint(state: RuntimeState): string {
   return `
     <aside class="hint" aria-label="Contextual hint">
       <span aria-hidden="true">✦</span>
-      <p>News will stay chronological by default. Weather can use a manual location without GPS.</p>
+      <p>News stays chronological by default. Weather can use a manual place without GPS.</p>
       <button class="icon-button" id="dismiss-hints" aria-label="Turn off contextual hints">×</button>
     </aside>
   `;
 }
 
-function homeView(state: RuntimeState): string {
-  const location = state.preferences.manualWeatherLocation.trim();
-  const locationText = location ? escapeHtml(location) : "Choose a location";
+function homeWeatherCard(state: RuntimeState): string {
+  const forecast = state.weather.forecast;
+  const enteredLocation = state.preferences.manualWeatherLocation.trim();
+  const locationText = forecast
+    ? formatLocation(forecast)
+    : enteredLocation
+      ? escapeHtml(enteredLocation)
+      : "Choose a location";
 
+  if (forecast) {
+    const today = forecast.daily[0];
+    return `
+      <article class="weather-card glass-card">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">Weather</p>
+            <h2>${escapeHtml(locationText)}</h2>
+          </div>
+          <span class="status-dot ready" aria-label="Forecast loaded"></span>
+        </div>
+        <div class="weather-current" aria-live="polite">
+          <strong>${temperature(forecast.current.temperatureCelsius)}</strong>
+          <div>
+            <span>${escapeHtml(weatherCodeDescription(forecast.current.weatherCode))}</span>
+            <p>
+              ${today ? `High ${temperature(today.highCelsius)} · Low ${temperature(today.lowCelsius)}` : ""}
+            </p>
+          </div>
+        </div>
+        <div class="weather-quick">
+          <span>Precipitation ${percentage(today?.precipitationProbabilityPercent)}</span>
+          <span>${formatLastUpdated(forecast.fetchedAt)}</span>
+        </div>
+      </article>
+    `;
+  }
+
+  const message = state.weather.loading
+    ? "Loading forecast…"
+    : state.weather.error
+      ? escapeHtml(state.weather.error)
+      : enteredLocation
+        ? "Forecast has not been loaded yet."
+        : "Add a manual location to load weather.";
+
+  return `
+    <article class="weather-card glass-card">
+      <div class="card-heading">
+        <div>
+          <p class="eyebrow">Weather</p>
+          <h2>${escapeHtml(locationText)}</h2>
+        </div>
+        <span class="status-dot waiting" aria-label="Forecast unavailable"></span>
+      </div>
+      <div class="weather-placeholder" aria-live="polite">
+        <strong>—°</strong>
+        <span>${message}</span>
+      </div>
+      <p class="quiet">Missing data is never presented as a current forecast.</p>
+    </article>
+  `;
+}
+
+function homeView(state: RuntimeState): string {
   return `
     <section class="page" aria-labelledby="home-title">
       <header class="page-heading">
@@ -130,24 +263,11 @@ function homeView(state: RuntimeState): string {
           <p class="eyebrow">Overview</p>
           <h1 id="home-title">Right now</h1>
         </div>
-        <p class="quiet">Development source foundation</p>
+        <p class="quiet">0.1.0 Development</p>
       </header>
 
       <div class="home-grid">
-        <article class="weather-card glass-card">
-          <div class="card-heading">
-            <div>
-              <p class="eyebrow">Weather</p>
-              <h2>${locationText}</h2>
-            </div>
-            <span class="status-dot waiting" aria-label="Provider not connected"></span>
-          </div>
-          <div class="weather-placeholder" aria-live="polite">
-            <strong>—°</strong>
-            <span>Weather provider not connected</span>
-          </div>
-          <p class="quiet">No stale or fabricated forecast is shown.</p>
-        </article>
+        ${homeWeatherCard(state)}
 
         <article class="headline-card glass-card">
           <div class="card-heading">
@@ -158,8 +278,16 @@ function homeView(state: RuntimeState): string {
             <span class="count-badge">0</span>
           </div>
           <div class="empty-state compact">
-            <strong>No feed data yet</strong>
-            <p>GoreeCloud Feeds integration is the next news implementation slice.</p>
+            <strong>
+              ${state.feedsStatus?.connected ? "Feeds contract verified" : "No feed connection yet"}
+            </strong>
+            <p>
+              ${escapeHtml(
+                state.feedsStatus?.connected
+                  ? "The current Feeds 0.1.0-dev protocol exposes capability negotiation but not article endpoints yet."
+                  : state.feedsStatus?.message ?? "GoreeCloud Feeds status has not been checked.",
+              )}
+            </p>
           </div>
         </article>
       </div>
@@ -167,7 +295,9 @@ function homeView(state: RuntimeState): string {
   `;
 }
 
-function newsView(): string {
+function newsView(state: RuntimeState): string {
+  const status = state.feedsStatus;
+
   return `
     <section class="page" aria-labelledby="news-title">
       <header class="page-heading">
@@ -179,18 +309,99 @@ function newsView(): string {
 
       <div class="empty-state glass-card">
         <div class="empty-icon" aria-hidden="true">▤</div>
-        <h2>Your sources will appear here</h2>
+        <h2>${status?.connected ? "Feeds Development contract verified" : "Connect GoreeCloud Feeds"}</h2>
         <p>
-          This source foundation does not fabricate sample headlines.
-          GoreeCloud Feeds will provide RSS/Atom retrieval, normalization,
-          deduplication, search, and synchronization.
+          ${escapeHtml(
+            status?.connected
+              ? "The verified Feeds protocol currently provides capability negotiation only. News & Weather will not invent article endpoints before GoreeCloud Feeds publishes them."
+              : status?.message ?? "GoreeCloud Feeds is not configured.",
+          )}
         </p>
       </div>
     </section>
   `;
 }
 
+function currentWeatherPanel(forecast: WeatherForecast): string {
+  const current = forecast.current;
+  return `
+    <article class="glass-card current-detail-card">
+      <div>
+        <p class="eyebrow">Current conditions</p>
+        <h2>${escapeHtml(formatLocation(forecast))}</h2>
+        <p class="condition-line">${escapeHtml(weatherCodeDescription(current.weatherCode))}</p>
+      </div>
+      <strong class="detail-temperature">${temperature(current.temperatureCelsius)}</strong>
+      <div class="metric-grid">
+        <div><span>Feels like</span><strong>${current.apparentTemperatureCelsius === undefined ? "—" : temperature(current.apparentTemperatureCelsius)}</strong></div>
+        <div><span>Humidity</span><strong>${percentage(current.relativeHumidityPercent)}</strong></div>
+        <div><span>Wind</span><strong>${current.windSpeedKmh === undefined ? "—" : `${Math.round(current.windSpeedKmh)} km/h`}</strong></div>
+        <div><span>Precipitation</span><strong>${millimeters(current.precipitationMm)}</strong></div>
+      </div>
+      <p class="quiet">${formatLastUpdated(forecast.fetchedAt)}</p>
+    </article>
+  `;
+}
+
+function hourlyPanel(forecast: WeatherForecast): string {
+  const startIndex = Math.max(
+    0,
+    forecast.hourly.findIndex((point) => point.time >= forecast.current.time),
+  );
+  const points = forecast.hourly.slice(startIndex, startIndex + 12);
+
+  return `
+    <section class="forecast-section" aria-labelledby="hourly-title">
+      <div class="section-heading">
+        <h2 id="hourly-title">Next 12 hours</h2>
+      </div>
+      <div class="hourly-strip">
+        ${points
+          .map(
+            (point) => `
+              <article class="hour-card">
+                <span>${escapeHtml(hourLabel(point.time))}</span>
+                <strong>${temperature(point.temperatureCelsius)}</strong>
+                <small>${escapeHtml(weatherCodeDescription(point.weatherCode))}</small>
+                <small>${percentage(point.precipitationProbabilityPercent)} precip.</small>
+              </article>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function dailyPanel(forecast: WeatherForecast): string {
+  return `
+    <section class="forecast-section" aria-labelledby="daily-title">
+      <div class="section-heading">
+        <h2 id="daily-title">Seven days</h2>
+      </div>
+      <div class="daily-list">
+        ${forecast.daily
+          .map(
+            (day) => `
+              <article class="day-row">
+                <div>
+                  <strong>${escapeHtml(dateLabel(day.date))}</strong>
+                  <span>${escapeHtml(weatherCodeDescription(day.weatherCode))}</span>
+                </div>
+                <span class="day-precip">${percentage(day.precipitationProbabilityPercent)}</span>
+                <span class="day-temps"><strong>${temperature(day.highCelsius)}</strong> ${temperature(day.lowCelsius)}</span>
+              </article>
+            `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
 function weatherView(state: RuntimeState): string {
+  const forecast = state.weather.forecast;
+
   return `
     <section class="page" aria-labelledby="weather-title">
       <header class="page-heading">
@@ -202,7 +413,10 @@ function weatherView(state: RuntimeState): string {
 
       <article class="glass-card location-card">
         <h2>Forecast location</h2>
-        <p class="quiet">Current-location permission is optional and is not requested by this source foundation.</p>
+        <p class="quiet">
+          GPS permission is not requested. This Development provider sends your entered place to
+          Open-Meteo for geocoding and forecast retrieval; precise resolved coordinates are kept transient.
+        </p>
         <form id="weather-location-form" class="location-form">
           <label class="field">
             <span>City, ZIP, postal code, or place</span>
@@ -215,18 +429,35 @@ function weatherView(state: RuntimeState): string {
               placeholder="Enter a location"
             />
           </label>
-          <button class="button primary" type="submit">Save location</button>
+          <button class="button primary" type="submit" ${state.weather.loading ? "disabled" : ""}>
+            ${state.weather.loading ? "Loading…" : "Load forecast"}
+          </button>
         </form>
+        ${state.weather.error ? `<p class="error-message" role="alert">${escapeHtml(state.weather.error)}</p>` : ""}
       </article>
 
-      <div class="empty-state glass-card">
-        <div class="empty-icon" aria-hidden="true">☼</div>
-        <h2>Forecast provider not connected</h2>
-        <p>
-          The provider adapter boundary exists in source, but no live provider
-          is configured. The app will never label missing or stale data as current.
-        </p>
-      </div>
+      ${forecast
+        ? `
+          <div class="weather-detail-stack">
+            ${currentWeatherPanel(forecast)}
+            ${hourlyPanel(forecast)}
+            ${dailyPanel(forecast)}
+            <p class="attribution">
+              Weather data: Open-Meteo (CC BY 4.0). Location search: GeoNames via Open-Meteo.
+            </p>
+          </div>
+        `
+        : `
+          <div class="empty-state glass-card">
+            <div class="empty-icon" aria-hidden="true">☼</div>
+            <h2>${state.weather.loading ? "Loading forecast" : "No forecast loaded"}</h2>
+            <p>
+              ${state.weather.loading
+                ? "Resolving the manual location and requesting the normalized seven-day forecast."
+                : "Enter a manual location above. Weather data will appear only after a successful provider response."}
+            </p>
+          </div>
+        `}
     </section>
   `;
 }
@@ -263,7 +494,10 @@ function settingsPanel(state: RuntimeState): string {
 
         <div class="settings-note">
           <strong>Privacy default</strong>
-          <p>No account, location permission, telemetry, or notification permission is required by this shell.</p>
+          <p>
+            No account, GPS permission, telemetry, or notification permission is required.
+            Manual weather lookup contacts the configured Development weather provider only after you submit a place.
+          </p>
         </div>
 
         <button class="button secondary" id="replay-onboarding">Replay first-use setup</button>
@@ -277,8 +511,15 @@ export function createNewsWeatherApp(root: HTMLElement): void {
     route: "home",
     settingsOpen: false,
     preferences: loadPreferences(),
+    weather: {
+      loading: false,
+      error: null,
+      forecast: null,
+    },
+    feedsStatus: null,
   };
 
+  let weatherRequestSequence = 0;
   applyTheme(state.preferences.theme);
 
   async function render(): Promise<void> {
@@ -286,6 +527,7 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       feedsClient.getStatus(),
       weatherProvider.getStatus(),
     ]);
+    state.feedsStatus = feedsStatus;
 
     root.innerHTML = `
       <div class="app-shell">
@@ -299,14 +541,26 @@ export function createNewsWeatherApp(root: HTMLElement): void {
           </div>
 
           <div class="topbar-actions">
-            <button class="button ghost" id="search-action" disabled aria-disabled="true" title="Search activates when GoreeCloud Feeds is connected">Search</button>
+            <button
+              class="button ghost"
+              id="search-action"
+              disabled
+              aria-disabled="true"
+              title="Search activates after GoreeCloud Feeds publishes and exposes article search endpoints"
+            >
+              Search
+            </button>
             <button class="icon-button" id="settings-action" aria-label="Open settings">⚙</button>
           </div>
         </header>
 
         <div class="provider-strip" aria-label="Development provider status">
-          <span>News: ${escapeHtml(feedsStatus.connected ? "connected" : "not connected")}</span>
-          <span>Weather: ${escapeHtml(weatherStatus.connected ? "connected" : "not connected")}</span>
+          <span title="${escapeHtml(feedsStatus.message)}">
+            Feeds: ${feedsStatus.connected ? "contract verified" : "not connected"}
+          </span>
+          <span title="${escapeHtml(weatherStatus.message)}">
+            Weather: ${weatherStatus.configured ? "Open-Meteo Development" : "not configured"}
+          </span>
           <span>Glaze target: ${PRODUCT.glazeUiTarget}</span>
         </div>
 
@@ -314,7 +568,7 @@ export function createNewsWeatherApp(root: HTMLElement): void {
         ${hint(state)}
 
         <main>
-          ${state.route === "home" ? homeView(state) : state.route === "news" ? newsView() : weatherView(state)}
+          ${state.route === "home" ? homeView(state) : state.route === "news" ? newsView(state) : weatherView(state)}
         </main>
 
         <nav class="bottom-nav" aria-label="Primary">
@@ -332,6 +586,39 @@ export function createNewsWeatherApp(root: HTMLElement): void {
     state.preferences = next;
     savePreferences(next);
     applyTheme(next.theme);
+  }
+
+  async function refreshWeather(query: string): Promise<void> {
+    const normalized = query.trim().slice(0, 160);
+    const requestId = ++weatherRequestSequence;
+
+    if (!normalized) {
+      state.weather = { loading: false, error: null, forecast: null };
+      await render();
+      return;
+    }
+
+    state.weather = {
+      loading: true,
+      error: null,
+      forecast: state.weather.forecast,
+    };
+    await render();
+
+    try {
+      const forecast = await weatherProvider.getForecastForQuery(normalized);
+      if (requestId !== weatherRequestSequence) return;
+      state.weather = { loading: false, error: null, forecast };
+    } catch (error) {
+      if (requestId !== weatherRequestSequence) return;
+      state.weather = {
+        loading: false,
+        error: error instanceof Error ? error.message : "Weather could not be loaded.",
+        forecast: state.weather.forecast,
+      };
+    }
+
+    await render();
   }
 
   function wireEvents(): void {
@@ -396,7 +683,12 @@ export function createNewsWeatherApp(root: HTMLElement): void {
         manualWeatherLocation: location,
         hintsEnabled: hints,
       });
-      void render();
+
+      if (location) {
+        void refreshWeather(location);
+      } else {
+        void render();
+      }
     });
 
     root.querySelector<HTMLButtonElement>("#dismiss-hints")?.addEventListener("click", () => {
@@ -409,9 +701,13 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       const location =
         root.querySelector<HTMLInputElement>("#weather-location")?.value.trim().slice(0, 160) ?? "";
       updatePreferences({ ...state.preferences, manualWeatherLocation: location });
-      void render();
+      void refreshWeather(location);
     });
   }
 
-  void render();
+  void render().then(() => {
+    if (state.preferences.onboardingComplete && state.preferences.manualWeatherLocation.trim()) {
+      void refreshWeather(state.preferences.manualWeatherLocation);
+    }
+  });
 }
