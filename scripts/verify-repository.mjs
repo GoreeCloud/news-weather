@@ -17,6 +17,8 @@ const requiredFiles = [
   "PRIVACY POLICY.md",
   "NOTES.md",
   "SECURITY.md",
+  "THIRD-PARTY-NOTICES.md",
+  "docs/WEATHER-PROVIDERS.md",
   "LICENSE",
   ".gitignore",
   ".editorconfig",
@@ -24,8 +26,10 @@ const requiredFiles = [
   "package.json",
   "tsconfig.json",
   "index.html",
+  ".env.example",
   "src/main.ts",
   "src/app.ts",
+  "src/state/weather-cache.ts",
   "src-tauri/Cargo.toml",
   "src-tauri/tauri.conf.json",
   "src-tauri/capabilities/default.json"
@@ -77,8 +81,16 @@ for (const expected of [
 }
 
 const implemented = await readFile("IMPLEMENTED-FEATURES.md", "utf8");
-if (!implemented.includes("no end-user News & Weather application capability is verified as implemented")) {
-  errors.push("Implemented-features record must preserve the current truthfulness boundary");
+for (const expected of [
+  "Current verified source state",
+  "Verification evidence",
+  "Not yet verified",
+  "does **not** establish live-provider runtime acceptance or native target acceptance",
+  "Release Candidate, Production, or Stable qualification"
+]) {
+  if (!implemented.includes(expected)) {
+    errors.push(`Implemented-features record is missing truthfulness marker: ${expected}`);
+  }
 }
 
 if (errors.length > 0) {

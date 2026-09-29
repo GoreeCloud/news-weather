@@ -69,3 +69,58 @@ The project specification separated responsibility among:
 This milestone records product direction and repository documentation initialization.
 
 It does **not** establish that the application, platform integrations, weather provider path, builds, release artifacts, or runtime functionality have been implemented or verified.
+
+## 2026-09-29 — Development Source Foundation and Weather Path Integrated
+
+### Event
+
+The first executable Development source foundation and the first bounded manual-place weather path were integrated into authoritative `main`.
+
+### Source Foundation
+
+PR #2 merged the TypeScript/Vite and Tauri 2 source foundation. Its exact candidate head `258d847389d6a80d73554a39c4b43772ccc6bc28` passed the Source Foundation workflow before merge.
+
+The merged foundation established:
+
+- Home, News, and Weather navigation.
+- Settings and local preference persistence.
+- First-use onboarding and optional contextual hints.
+- System, light, and dark theme handling.
+- Tauri 2 source configuration and minimal capability permissions.
+- Platform Contract 0.4 repository manifest.
+
+### Development Feeds and Weather Adapter
+
+PR #3 merged the first provider/integration tranche. Exact head `d5893f1a0cb1d7bf3dc51328f597b4e12b23a5e0` passed Source Foundation workflow run `36544875319`.
+
+The tranche established:
+
+- GoreeCloud Feeds `0.1.0-dev` capability negotiation without inventing unsupported article endpoints.
+- Provider-independent GoreeCloud weather-domain models.
+- Open-Meteo Development manual-place geocoding and weather adapter.
+- Current, hourly, and seven-day weather source/UI foundations.
+- Scoped network Content Security Policy.
+- Provider attribution and third-party notices.
+- Privacy boundary that persists the user's place text while keeping resolved coordinates transient.
+
+### Bounded Offline Weather Cache
+
+PR #5 merged a bounded last-successful weather cache. Exact head `c8946d0024108e5f9d9ac34e3aadd03603adff69` passed Source Foundation workflow run `36545235443`.
+
+The cache:
+
+- stores one normalized forecast snapshot;
+- is matched to the same manual-place query;
+- expires after 24 hours;
+- is invalidated when the manual place changes or is cleared;
+- is presented explicitly as cached/stale;
+- remains visible when a live refresh fails.
+
+Authoritative `main` after this milestone is `97718fa0ccb9b0a25ef0f592dbf48cf698ea0993`.
+
+### Verification Boundary
+
+The Source Foundation workflow verifies repository baseline, strict TypeScript checking, web source build, and Rust formatting.
+
+This milestone does **not** establish representative browser runtime acceptance, live Open-Meteo endpoint acceptance, Android/Linux/Windows build or device acceptance, GoreeCloud platform-system acceptance, signed release artifacts, Production status, Release Candidate status, or Stable qualification.
+

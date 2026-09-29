@@ -8,9 +8,9 @@ The product is designed as a utility: selected news sources, useful weather info
 
 ## Current status
 
-This repository is in **Development initialization**.
+This repository is in **Development**. It now contains a source-validated TypeScript/Vite application shell, Tauri 2 source configuration, a verified GoreeCloud Feeds Development capability handshake, a provider-independent manual-place weather path using an Open-Meteo Development adapter, and a bounded last-successful forecast cache.
 
-The product specification and repository governance baseline are being established before application implementation. Repository documentation is not evidence that Android, web, Linux, Windows, news, weather, synchronization, or GoreeCloud platform integrations are implemented.
+These are source-level Development capabilities. No Android, Linux, Windows, or representative browser runtime acceptance, live-provider acceptance, GoreeCloud platform-system acceptance, release artifact, Production state, or Stable state is verified.
 
 The initial target release is **0.1.0 Development**.
 
@@ -63,7 +63,7 @@ Normalized GoreeCloud Weather Model
 News & Weather
 ```
 
-The preferred shared-client direction is **TypeScript** with **Tauri** for supported desktop and Android targets where appropriate. No framework or dependency is considered implemented until it exists in source and is verified.
+The shared client foundation is implemented in **TypeScript/Vite**, with **Tauri 2** source configuration for desktop and Android targets. Native target builds and representative-device acceptance remain outstanding.
 
 ## Documentation
 
