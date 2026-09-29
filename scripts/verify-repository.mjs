@@ -82,7 +82,8 @@ for (const expected of [
 
 const implemented = await readFile("IMPLEMENTED-FEATURES.md", "utf8");
 for (const expected of [
-  "source-level evidence",
+  "Current verified source state",
+  "Verification evidence",
   "Not yet verified",
   "does **not** establish live-provider runtime acceptance or native target acceptance",
   "Release Candidate, Production, or Stable qualification"
