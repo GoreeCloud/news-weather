@@ -3,7 +3,7 @@
 ## Current direction
 
 - Native GoreeCloud-owned implementation.
-- Shared TypeScript client direction.
+- Shared TypeScript/Vite client foundation implemented in source.
 - Tauri 2 target for Windows, Linux, and Android where supported.
 - Web target from the same frontend foundation.
 - GoreeCloud Feeds remains the news-processing authority.
@@ -16,8 +16,8 @@
 
 - GoreeCloud Application Foundation does not yet provide a usable implementation contract.
 - News & Weather has not completed Glaze consumer acceptance.
-- GoreeCloud Feeds runtime integration is not yet implemented here.
-- A weather provider is not yet connected.
+- GoreeCloud Feeds 0.1.0-dev capability negotiation is implemented in source, but its verified protocol does not yet expose article endpoints.
+- The Open-Meteo manual-place Development adapter is implemented in source with attribution and a bounded 24-hour last-successful forecast cache; representative live-provider runtime acceptance remains open.
 - Native packaging and representative-device validation remain pending.
 - Dependency lockfiles and full native build validation must be established as source dependencies mature.
 
