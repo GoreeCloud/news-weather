@@ -18,6 +18,11 @@ import {
   loadWeatherCache,
   saveWeatherCache,
 } from "./state/weather-cache";
+import {
+  formatPrecipitation,
+  formatTemperature,
+  formatWind,
+} from "./weather-units";
 
 const feedsClient = createFeedsClient();
 const weatherProvider = new OpenMeteoWeatherProvider();
@@ -61,16 +66,20 @@ function applyTheme(theme: ThemePreference): void {
   document.documentElement.dataset.theme = theme;
 }
 
-function temperature(value: number): string {
-  return `${Math.round(value)}°`;
+function temperature(value: number, preferences: Preferences): string {
+  return formatTemperature(value, preferences.temperatureUnit);
 }
 
 function percentage(value: number | undefined): string {
   return value === undefined ? "—" : `${Math.round(value)}%`;
 }
 
-function millimeters(value: number | undefined): string {
-  return value === undefined ? "—" : `${value.toFixed(value < 10 ? 1 : 0)} mm`;
+function wind(value: number | undefined, preferences: Preferences): string {
+  return formatWind(value, preferences.windUnit);
+}
+
+function precipitation(value: number | undefined, preferences: Preferences): string {
+  return formatPrecipitation(value, preferences.precipitationUnit);
 }
 
 function formatLocation(forecast: WeatherForecast): string {
@@ -232,11 +241,11 @@ function homeWeatherCard(state: RuntimeState): string {
           ></span>
         </div>
         <div class="weather-current" aria-live="polite">
-          <strong>${temperature(forecast.current.temperatureCelsius)}</strong>
+          <strong>${temperature(forecast.current.temperatureCelsius, state.preferences)}</strong>
           <div>
             <span>${escapeHtml(weatherCodeDescription(forecast.current.weatherCode))}</span>
             <p>
-              ${today ? `High ${temperature(today.highCelsius)} · Low ${temperature(today.lowCelsius)}` : ""}
+              ${today ? `High ${temperature(today.highCelsius, state.preferences)} · Low ${temperature(today.lowCelsius, state.preferences)}` : ""}
             </p>
           </div>
         </div>
@@ -341,7 +350,11 @@ function newsView(state: RuntimeState): string {
   `;
 }
 
-function currentWeatherPanel(forecast: WeatherForecast, cached: boolean): string {
+function currentWeatherPanel(
+  forecast: WeatherForecast,
+  cached: boolean,
+  preferences: Preferences,
+): string {
   const current = forecast.current;
   return `
     <article class="glass-card current-detail-card">
@@ -350,19 +363,19 @@ function currentWeatherPanel(forecast: WeatherForecast, cached: boolean): string
         <h2>${escapeHtml(formatLocation(forecast))}</h2>
         <p class="condition-line">${escapeHtml(weatherCodeDescription(current.weatherCode))}</p>
       </div>
-      <strong class="detail-temperature">${temperature(current.temperatureCelsius)}</strong>
+      <strong class="detail-temperature">${temperature(current.temperatureCelsius, preferences)}</strong>
       <div class="metric-grid">
-        <div><span>Feels like</span><strong>${current.apparentTemperatureCelsius === undefined ? "—" : temperature(current.apparentTemperatureCelsius)}</strong></div>
+        <div><span>Feels like</span><strong>${current.apparentTemperatureCelsius === undefined ? "—" : temperature(current.apparentTemperatureCelsius, preferences)}</strong></div>
         <div><span>Humidity</span><strong>${percentage(current.relativeHumidityPercent)}</strong></div>
-        <div><span>Wind</span><strong>${current.windSpeedKmh === undefined ? "—" : `${Math.round(current.windSpeedKmh)} km/h`}</strong></div>
-        <div><span>Precipitation</span><strong>${millimeters(current.precipitationMm)}</strong></div>
+        <div><span>Wind</span><strong>${wind(current.windSpeedKmh, preferences)}</strong></div>
+        <div><span>Precipitation</span><strong>${precipitation(current.precipitationMm, preferences)}</strong></div>
       </div>
       <p class="quiet">${escapeHtml(formatFreshness(forecast.fetchedAt, cached))}</p>
     </article>
   `;
 }
 
-function hourlyPanel(forecast: WeatherForecast): string {
+function hourlyPanel(forecast: WeatherForecast, preferences: Preferences): string {
   const startIndex = Math.max(
     0,
     forecast.hourly.findIndex((point) => point.time >= forecast.current.time),
@@ -380,7 +393,7 @@ function hourlyPanel(forecast: WeatherForecast): string {
             (point) => `
               <article class="hour-card">
                 <span>${escapeHtml(hourLabel(point.time))}</span>
-                <strong>${temperature(point.temperatureCelsius)}</strong>
+                <strong>${temperature(point.temperatureCelsius, preferences)}</strong>
                 <small>${escapeHtml(weatherCodeDescription(point.weatherCode))}</small>
                 <small>${percentage(point.precipitationProbabilityPercent)} precip.</small>
               </article>
@@ -392,7 +405,7 @@ function hourlyPanel(forecast: WeatherForecast): string {
   `;
 }
 
-function dailyPanel(forecast: WeatherForecast): string {
+function dailyPanel(forecast: WeatherForecast, preferences: Preferences): string {
   return `
     <section class="forecast-section" aria-labelledby="daily-title">
       <div class="section-heading">
@@ -407,8 +420,8 @@ function dailyPanel(forecast: WeatherForecast): string {
                   <strong>${escapeHtml(dateLabel(day.date))}</strong>
                   <span>${escapeHtml(weatherCodeDescription(day.weatherCode))}</span>
                 </div>
-                <span class="day-precip">${percentage(day.precipitationProbabilityPercent)}</span>
-                <span class="day-temps"><strong>${temperature(day.highCelsius)}</strong> ${temperature(day.lowCelsius)}</span>
+                <span class="day-precip">${percentage(day.precipitationProbabilityPercent)} · ${precipitation(day.precipitationMm, preferences)}</span>
+                <span class="day-temps"><strong>${temperature(day.highCelsius, preferences)}</strong> ${temperature(day.lowCelsius, preferences)}</span>
               </article>
             `,
           )
@@ -459,9 +472,9 @@ function weatherView(state: RuntimeState): string {
         ? `
           <div class="weather-detail-stack">
             ${state.weather.cached ? '<p class="cache-banner" role="status">Offline cache · Refreshing will replace this snapshot when the provider is reachable.</p>' : ""}
-            ${currentWeatherPanel(forecast, state.weather.cached)}
-            ${hourlyPanel(forecast)}
-            ${dailyPanel(forecast)}
+            ${currentWeatherPanel(forecast, state.weather.cached, state.preferences)}
+            ${hourlyPanel(forecast, state.preferences)}
+            ${dailyPanel(forecast, state.preferences)}
             <p class="attribution">
               Weather data: Open-Meteo (CC BY 4.0). Location search: GeoNames via Open-Meteo.
             </p>
@@ -506,6 +519,39 @@ function settingsPanel(state: RuntimeState): string {
             <option value="dark" ${state.preferences.theme === "dark" ? "selected" : ""}>Dark</option>
           </select>
         </label>
+
+        <div class="settings-section" aria-labelledby="weather-units-title">
+          <div>
+            <p class="eyebrow">Weather</p>
+            <h3 id="weather-units-title">Units</h3>
+          </div>
+
+          <div class="settings-grid">
+            <label class="field">
+              <span>Temperature</span>
+              <select id="temperature-unit-setting">
+                <option value="celsius" ${state.preferences.temperatureUnit === "celsius" ? "selected" : ""}>Celsius (°C)</option>
+                <option value="fahrenheit" ${state.preferences.temperatureUnit === "fahrenheit" ? "selected" : ""}>Fahrenheit (°F)</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Wind</span>
+              <select id="wind-unit-setting">
+                <option value="kmh" ${state.preferences.windUnit === "kmh" ? "selected" : ""}>Kilometers/hour</option>
+                <option value="mph" ${state.preferences.windUnit === "mph" ? "selected" : ""}>Miles/hour</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Precipitation</span>
+              <select id="precipitation-unit-setting">
+                <option value="mm" ${state.preferences.precipitationUnit === "mm" ? "selected" : ""}>Millimeters</option>
+                <option value="inches" ${state.preferences.precipitationUnit === "inches" ? "selected" : ""}>Inches</option>
+              </select>
+            </label>
+          </div>
+        </div>
 
         <label class="check-row">
           <input id="hints-setting" type="checkbox" ${state.preferences.hintsEnabled ? "checked" : ""} />
@@ -684,6 +730,36 @@ export function createNewsWeatherApp(root: HTMLElement): void {
         void render();
       }
     });
+
+    root
+      .querySelector<HTMLSelectElement>("#temperature-unit-setting")
+      ?.addEventListener("change", (event) => {
+        const value = (event.currentTarget as HTMLSelectElement).value;
+        if (value === "celsius" || value === "fahrenheit") {
+          updatePreferences({ ...state.preferences, temperatureUnit: value });
+          void render();
+        }
+      });
+
+    root
+      .querySelector<HTMLSelectElement>("#wind-unit-setting")
+      ?.addEventListener("change", (event) => {
+        const value = (event.currentTarget as HTMLSelectElement).value;
+        if (value === "kmh" || value === "mph") {
+          updatePreferences({ ...state.preferences, windUnit: value });
+          void render();
+        }
+      });
+
+    root
+      .querySelector<HTMLSelectElement>("#precipitation-unit-setting")
+      ?.addEventListener("change", (event) => {
+        const value = (event.currentTarget as HTMLSelectElement).value;
+        if (value === "mm" || value === "inches") {
+          updatePreferences({ ...state.preferences, precipitationUnit: value });
+          void render();
+        }
+      });
 
     root.querySelector<HTMLInputElement>("#hints-setting")?.addEventListener("change", (event) => {
       updatePreferences({
