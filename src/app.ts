@@ -299,7 +299,7 @@ export function createNewsWeatherApp(root: HTMLElement): void {
           </div>
 
           <div class="topbar-actions">
-            <button class="button ghost" id="search-action">Search</button>
+            <button class="button ghost" id="search-action" disabled aria-disabled="true" title="Search activates when GoreeCloud Feeds is connected">Search</button>
             <button class="icon-button" id="settings-action" aria-label="Open settings">⚙</button>
           </div>
         </header>
@@ -410,10 +410,6 @@ export function createNewsWeatherApp(root: HTMLElement): void {
         root.querySelector<HTMLInputElement>("#weather-location")?.value.trim().slice(0, 160) ?? "";
       updatePreferences({ ...state.preferences, manualWeatherLocation: location });
       void render();
-    });
-
-    root.querySelector<HTMLButtonElement>("#search-action")?.addEventListener("click", () => {
-      globalThis.alert("Search will activate when the GoreeCloud Feeds integration is connected.");
     });
   }
 
