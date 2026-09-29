@@ -8,6 +8,9 @@ As of 2026-09-29, authoritative `main` contains the following source-implemented
 
 - TypeScript/Vite application shell with Home, News, and Weather navigation.
 - Local Settings surface with system/light/dark theme preferences.
+- Persisted weather presentation units: Celsius/Fahrenheit, km/h/mph, and millimeters/inches, while provider/cache models remain normalized in metric units.
+- Persisted system/default, large, and extra-large text-size preferences that compose with browser/platform scaling.
+- Large-text-safe Settings scrolling within the viewport.
 - First-use onboarding with manual weather-location setup and optional contextual hints.
 - Local preference persistence with safe fallback when browser storage is unavailable.
 - Tauri 2 source configuration and minimal default capability set for planned Android, Linux, and Windows packaging.
@@ -27,7 +30,10 @@ As of 2026-09-29, authoritative `main` contains the following source-implemented
 - PR #2 source-foundation head `258d847389d6a80d73554a39c4b43772ccc6bc28` passed the Source Foundation workflow before merge.
 - PR #3 weather/Feeds adapter head `d5893f1a0cb1d7bf3dc51328f597b4e12b23a5e0` passed Source Foundation workflow run `36544875319` before merge.
 - PR #5 weather-cache head `c8946d0024108e5f9d9ac34e3aadd03603adff69` passed Source Foundation workflow run `36545235443` before merge.
-- Current authoritative source revision after these milestones is `97718fa0ccb9b0a25ef0f592dbf48cf698ea0993`.
+- PR #8 provider/cache tests head `5afef4191d8971fd369c24d2dea15a837dce8250` passed Source Foundation run `36546118757` and Unit Tests run `36546118799` before merge.
+- PR #9 weather-unit preferences head `55d4f6a7f27e1c9553238359485a2e9dcb151d4e` passed Source Foundation run `36546673081` and Unit Tests run `36546673063` before merge.
+- PR #10 text-size accessibility head `f5cbfe1c57e922defa6a956d94d8b6f7c9c3f1d1` passed Source Foundation run `36546996822` and Unit Tests run `36546996814` before merge.
+- Current authoritative source revision after these milestones is `63aa9b8b27f71692e5a713ac37cc33baaac4e9a5`.
 
 The Source Foundation workflow verifies repository baseline, strict TypeScript type-checking, web source build, and Rust formatting. It does **not** establish live-provider runtime acceptance or native target acceptance.
 
