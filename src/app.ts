@@ -28,6 +28,12 @@ import {
   formatTemperature,
   formatWind,
 } from "./weather-units";
+import {
+  addSavedWeatherLocation,
+  isSavedWeatherLocation,
+  normalizeWeatherLocation,
+  removeSavedWeatherLocation,
+} from "./weather-locations";
 
 const feedsClient = createFeedsClient();
 const weatherProvider = new OpenMeteoWeatherProvider();
@@ -442,6 +448,12 @@ function dailyPanel(forecast: WeatherForecast, preferences: Preferences): string
 
 function weatherView(state: RuntimeState): string {
   const forecast = state.weather.forecast;
+  const activePlace = normalizeWeatherLocation(state.preferences.manualWeatherLocation);
+  const activePlaceSaved = isSavedWeatherLocation(
+    state.preferences.savedWeatherLocations,
+    activePlace,
+  );
+  const savedPlaces = state.preferences.savedWeatherLocations;
 
   return `
     <section class="page" aria-labelledby="weather-title">
@@ -470,12 +482,60 @@ function weatherView(state: RuntimeState): string {
               placeholder="Enter a location"
             />
           </label>
-          <button class="button primary" type="submit" ${state.weather.loading ? "disabled" : ""}>
-            ${state.weather.loading ? "Loading…" : "Load forecast"}
-          </button>
+          <div class="location-actions">
+            <button class="button primary" type="submit" ${state.weather.loading ? "disabled" : ""}>
+              ${state.weather.loading ? "Loading…" : "Load forecast"}
+            </button>
+            <button
+              class="button secondary compact-button"
+              id="save-weather-location"
+              type="button"
+              ${!activePlace || activePlaceSaved ? "disabled" : ""}
+            >
+              ${activePlaceSaved ? "Saved" : "Save place"}
+            </button>
+          </div>
         </form>
         ${state.weather.error ? `<p class="error-message" role="alert">${escapeHtml(state.weather.error)}${state.weather.cached && forecast ? " Showing the last cached forecast." : ""}</p>` : ""}
       </article>
+
+      ${savedPlaces.length > 0 ? `
+        <section class="glass-card saved-locations-card" aria-labelledby="saved-locations-title">
+          <div class="card-heading">
+            <div>
+              <p class="eyebrow">Weather</p>
+              <h2 id="saved-locations-title">Saved places</h2>
+            </div>
+            <span class="count-badge">${savedPlaces.length}/8</span>
+          </div>
+          <div class="saved-location-list">
+            ${savedPlaces.map((location, index) => {
+              const active =
+                normalizeWeatherLocation(location).toLocaleLowerCase("en-US") ===
+                activePlace.toLocaleLowerCase("en-US");
+              return `
+                <div class="saved-location-row">
+                  <button
+                    class="saved-location-use"
+                    type="button"
+                    data-saved-location-index="${index}"
+                    aria-current="${active ? "true" : "false"}"
+                  >
+                    <span>${escapeHtml(location)}</span>
+                    <small>${active ? "Current" : "Load forecast"}</small>
+                  </button>
+                  <button
+                    class="icon-button saved-location-remove"
+                    type="button"
+                    data-remove-saved-location-index="${index}"
+                    aria-label="Remove ${escapeHtml(location)} from saved places"
+                  >×</button>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      ` : ""}
 
       ${forecast
         ? `
@@ -855,6 +915,63 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       updatePreferences({ ...state.preferences, manualWeatherLocation: location });
       void refreshWeather(location);
     });
+
+    root.querySelector<HTMLButtonElement>("#save-weather-location")?.addEventListener("click", () => {
+      const location = normalizeWeatherLocation(state.preferences.manualWeatherLocation);
+      if (!location) {
+        return;
+      }
+
+      updatePreferences({
+        ...state.preferences,
+        savedWeatherLocations: addSavedWeatherLocation(
+          state.preferences.savedWeatherLocations,
+          location,
+        ),
+      });
+      void render();
+    });
+
+    root.querySelectorAll<HTMLButtonElement>("[data-saved-location-index]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.savedLocationIndex);
+        const location = state.preferences.savedWeatherLocations[index];
+        if (location === undefined) {
+          return;
+        }
+
+        const changed =
+          normalizeWeatherLocation(location).toLocaleLowerCase("en-US") !==
+          normalizeWeatherLocation(state.preferences.manualWeatherLocation).toLocaleLowerCase("en-US");
+
+        if (changed) {
+          clearWeatherCache();
+          state.weather = { loading: false, error: null, forecast: null, cached: false };
+        }
+
+        updatePreferences({
+          ...state.preferences,
+          manualWeatherLocation: location,
+        });
+        void refreshWeather(location);
+      });
+    });
+
+    root
+      .querySelectorAll<HTMLButtonElement>("[data-remove-saved-location-index]")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          const index = Number(button.dataset.removeSavedLocationIndex);
+          updatePreferences({
+            ...state.preferences,
+            savedWeatherLocations: removeSavedWeatherLocation(
+              state.preferences.savedWeatherLocations,
+              index,
+            ),
+          });
+          void render();
+        });
+      });
   }
 
   void render().then(() => {
