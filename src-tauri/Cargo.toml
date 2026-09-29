@@ -1,0 +1,19 @@
+[package]
+name = "goreecloud-news-weather"
+version = "0.1.0-dev.0"
+description = "GoreeCloud News & Weather"
+authors = ["GoreeCloud"]
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/GoreeCloud/news-weather"
+edition = "2024"
+rust-version = "1.85"
+
+[lib]
+name = "goreecloud_news_weather_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }

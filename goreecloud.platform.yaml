@@ -1,0 +1,156 @@
+schema_version: '0.4'
+
+component:
+  type: application
+  id: goreecloud-news-weather
+  product_name: GoreeCloud News & Weather
+  repository: GoreeCloud/news-weather
+
+lifecycle: development
+version: 0.1.0-dev.0
+
+supported_platforms:
+  - web
+  - linux
+  - windows
+  - android
+
+api:
+  versions: []
+  endpoints: []
+
+platform_systems:
+  manager:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - PROJECT-SPECIFICATIONS.md
+      - docs/PLATFORM-INTEGRATIONS.md
+    notes: Manager lifecycle and configuration visibility are applicable, but no accepted Manager runtime registration, health publication, or operational acceptance exists.
+  privacy_shield:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - PRIVACY.md
+      - PROJECT-SPECIFICATIONS.md
+      - docs/PLATFORM-INTEGRATIONS.md
+    notes: Privacy requirements and data-minimization boundaries are documented, but no accepted Privacy Shield runtime adapter or application privacy acceptance exists.
+  wardveil_security:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - SECURITY.md
+      - PROJECT-SPECIFICATIONS.md
+      - docs/PLATFORM-INTEGRATIONS.md
+    notes: Security trust boundaries are documented, but no accepted Wardveil runtime integration, provider-content evidence, or application security acceptance exists.
+  everkeep:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - PROJECT-SPECIFICATIONS.md
+      - docs/PLATFORM-INTEGRATIONS.md
+    notes: Recovery and portability are applicable to eligible durable user state, but no accepted Everkeep backup/restore integration or clean-environment recovery evidence exists.
+  glaze_ui:
+    result: applicable-blocked
+    version: '1.6.0'
+    evidence:
+      - BRANDING.md
+      - PROJECT-SPECIFICATIONS.md
+      - docs/PLATFORM-INTEGRATIONS.md
+    notes: Official consumer target is GLAZE UI V1.6 / 1.6.0. News & Weather has not yet completed repository-local runtime, rendered, accessibility, performance, representative-device, rollback, or product acceptance.
+  mesh:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - PROJECT-SPECIFICATIONS.md
+      - docs/PLATFORM-INTEGRATIONS.md
+    notes: First-party coordination remains subject to applicability and contract evaluation; no accepted Mesh registration, capabilities, dependencies, events, transport, or runtime evidence exists.
+    capabilities: []
+    dependencies: []
+    published_events: []
+    consumed_events: []
+  identity:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - PRIVACY.md
+      - PROJECT-SPECIFICATIONS.md
+    notes: Basic use remains account-optional. Identity is conditionally applicable to future account-backed synchronization, but no accepted runtime integration exists.
+  policy:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - PROJECT-SPECIFICATIONS.md
+      - goreecloud.platform.yaml
+    notes: GoreeCloud Policy is applicable to governed permission, privacy, security, and administrative decisions, but no accepted runtime policy integration exists.
+  observability:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - PRIVACY.md
+      - SECURITY.md
+      - goreecloud.platform.yaml
+    notes: Privacy-bounded operational evidence is applicable, but no accepted Observability exporter, transport, alerting, or runtime acceptance exists.
+
+health:
+  health_endpoint: null
+  readiness_endpoint: null
+
+continuity:
+  backup:
+    required: true
+    requirements:
+      - Protect only approved durable News & Weather-owned state through accepted Everkeep contracts.
+      - Treat feed/article caches and weather snapshots as bounded cache data unless a separate preservation requirement exists.
+      - Exclude reusable secrets and unnecessary precise location data from ordinary backup payloads.
+  restore:
+    required: true
+    requirements:
+      - Validate clean-environment restoration of supported durable application state before Stable qualification.
+      - Preserve privacy, account-optional behavior, and provider-replaceability during restore.
+  export:
+    required: true
+    requirements:
+      - Provide user-controlled export for subscriptions, folders, bookmarks, saved locations, and preferences where applicable.
+      - Support OPML import/export for news subscriptions through the approved GoreeCloud Feeds boundary.
+  portability:
+    required: true
+    requirements:
+      - Keep provider-independent weather and application-domain models.
+      - Avoid making one weather provider or one platform-specific storage format the permanent source of truth.
+
+external_dependencies: []
+
+compatibility:
+  platform_contract: '0.4'
+  glaze_ui_required: '1.6.0'
+  requires:
+    - goreecloud-platform-contract==0.4
+    - glaze-ui==1.6.0
+  provides:
+    - news-weather-client
+
+evidence:
+  acceptance_tests: []
+  release: []
+
+conformance:
+  status: nonconformant
+  validated_at: null
+  evidence:
+    - PROJECT-SPECIFICATIONS.md
+    - docs/PLATFORM-INTEGRATIONS.md
+  blockers:
+    - No accepted Manager runtime integration.
+    - No accepted Privacy Shield runtime integration.
+    - No accepted Wardveil Security runtime integration.
+    - No accepted Everkeep backup/restore integration.
+    - GLAZE UI V1.6 adoption and downstream acceptance are incomplete.
+    - Mesh applicability and runtime integration are incomplete.
+    - Identity-backed synchronization integration is incomplete.
+    - GoreeCloud Policy runtime integration is incomplete.
+    - GoreeCloud Observability runtime integration is incomplete.
+    - GoreeCloud Feeds runtime news integration is incomplete.
+    - Weather-provider runtime integration is incomplete.
+    - Android, Web, Linux, and Windows representative runtime acceptance is incomplete.
+    - Release, signing, provenance, rollback, Production, and Stable qualification are incomplete.

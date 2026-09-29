@@ -1,0 +1,25 @@
+{
+  "name": "@goreecloud/news-weather",
+  "version": "0.1.0-dev.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.19.0",
+  "engines": {
+    "node": "24.21.0",
+    "npm": "11.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "npm run typecheck && vite build",
+    "build:web": "npm run build",
+    "preview": "vite preview",
+    "verify:repo": "node scripts/verify-repository.mjs",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.5",
+    "typescript": "7.0.2",
+    "vite": "8.3.1"
+  }
+}
