@@ -15,7 +15,8 @@
     "build:web": "npm run build",
     "preview": "vite preview",
     "verify:repo": "node scripts/verify-repository.mjs",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "test:unit": "node --test --test-concurrency=1 tests/*.test.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.11.5",
