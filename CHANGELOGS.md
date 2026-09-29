@@ -17,6 +17,7 @@ This repository is in Development initialization. No user-facing release is veri
 - Bounded 24-hour last-successful weather cache with explicit cached/stale presentation and location-change invalidation.
 - Development source CI covering repository verification, strict TypeScript checking, web build, and Rust formatting.
 - Local weather-unit preferences for Celsius/Fahrenheit, km/h/mph, and millimeters/inches, with legacy-safe defaults and presentation-only conversion.
+- Local system/default, large, and extra-large text-size preferences that build on browser/platform scaling, plus viewport-bounded Settings scrolling for large text.
 
 ## 0.1.0 Development
 
