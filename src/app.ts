@@ -704,6 +704,14 @@ export function createNewsWeatherApp(root: HTMLElement): void {
         root.querySelector<HTMLInputElement>("#onboarding-location")?.value.trim().slice(0, 160) ?? "";
       const hints =
         root.querySelector<HTMLInputElement>("#onboarding-hints")?.checked ?? true;
+      const changed = location.localeCompare(state.preferences.manualWeatherLocation, undefined, {
+        sensitivity: "accent",
+      }) !== 0;
+
+      if (changed) {
+        clearWeatherCache();
+        state.weather = { loading: false, error: null, forecast: null, cached: false };
+      }
 
       updatePreferences({
         ...state.preferences,
