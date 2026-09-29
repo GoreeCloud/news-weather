@@ -823,3 +823,26 @@ select {
   font-size: 0.8rem;
   line-height: 1.45;
 }
+
+.settings-section {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.settings-section h3 {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
