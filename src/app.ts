@@ -1,4 +1,9 @@
-import { PRODUCT, type Route, type ThemePreference } from "./config/product";
+import {
+  PRODUCT,
+  type Route,
+  type TextSizePreference,
+  type ThemePreference,
+} from "./config/product";
 import {
   createFeedsClient,
   type NewsFeedStatus,
@@ -64,6 +69,10 @@ function routeLabel(route: Route): string {
 
 function applyTheme(theme: ThemePreference): void {
   document.documentElement.dataset.theme = theme;
+}
+
+function applyTextSize(textSize: TextSizePreference): void {
+  document.documentElement.dataset.textSize = textSize;
 }
 
 function temperature(value: number, preferences: Preferences): string {
@@ -520,6 +529,16 @@ function settingsPanel(state: RuntimeState): string {
           </select>
         </label>
 
+        <label class="field">
+          <span>Text size</span>
+          <select id="text-size-setting">
+            <option value="system" ${state.preferences.textSize === "system" ? "selected" : ""}>System / default</option>
+            <option value="large" ${state.preferences.textSize === "large" ? "selected" : ""}>Large</option>
+            <option value="extra-large" ${state.preferences.textSize === "extra-large" ? "selected" : ""}>Extra large</option>
+          </select>
+          <small>Builds on your browser or platform text scale instead of replacing it.</small>
+        </label>
+
         <div class="settings-section" aria-labelledby="weather-units-title">
           <div>
             <p class="eyebrow">Weather</p>
@@ -591,6 +610,7 @@ export function createNewsWeatherApp(root: HTMLElement): void {
 
   let weatherRequestSequence = 0;
   applyTheme(state.preferences.theme);
+  applyTextSize(state.preferences.textSize);
 
   async function render(): Promise<void> {
     const [feedsStatus, weatherStatus] = await Promise.all([
@@ -656,6 +676,7 @@ export function createNewsWeatherApp(root: HTMLElement): void {
     state.preferences = next;
     savePreferences(next);
     applyTheme(next.theme);
+    applyTextSize(next.textSize);
   }
 
   async function refreshWeather(query: string): Promise<void> {
@@ -730,6 +751,16 @@ export function createNewsWeatherApp(root: HTMLElement): void {
         void render();
       }
     });
+
+    root
+      .querySelector<HTMLSelectElement>("#text-size-setting")
+      ?.addEventListener("change", (event) => {
+        const value = (event.currentTarget as HTMLSelectElement).value;
+        if (value === "system" || value === "large" || value === "extra-large") {
+          updatePreferences({ ...state.preferences, textSize: value });
+          void render();
+        }
+      });
 
     root
       .querySelector<HTMLSelectElement>("#temperature-unit-setting")
