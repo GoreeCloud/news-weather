@@ -10,3 +10,4 @@ export const PRODUCT = Object.freeze({
 
 export type Route = "home" | "news" | "weather";
 export type ThemePreference = "system" | "light" | "dark";
+export type TextSizePreference = "system" | "large" | "extra-large";

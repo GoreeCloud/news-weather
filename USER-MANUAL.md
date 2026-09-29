@@ -45,7 +45,7 @@ The latest successful normalized forecast is cached for up to 24 hours for the s
 
 ## Settings
 
-The current Development Settings surface provides theme, contextual-hint, temperature-unit, wind-unit, and precipitation-unit controls. Temperature can be shown in Celsius or Fahrenheit, wind in km/h or mph, and precipitation in millimeters or inches. Unit choices are local presentation preferences; cached/provider weather remains normalized internally. Additional planned Settings areas include sources, folders, notifications, text size, refresh/cache controls, privacy permissions, synchronization, and import/export.
+The current Development Settings surface provides theme, text-size, contextual-hint, temperature-unit, wind-unit, and precipitation-unit controls. Temperature can be shown in Celsius or Fahrenheit, wind in km/h or mph, and precipitation in millimeters or inches. Unit choices are local presentation preferences; cached/provider weather remains normalized internally. Additional planned Settings areas include sources, folders, notifications, text size, refresh/cache controls, privacy permissions, synchronization, and import/export.
 
 ## Offline behavior
 
