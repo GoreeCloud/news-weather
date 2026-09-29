@@ -53,6 +53,7 @@ test("legacy preferences migrate safely to metric weather-unit defaults", () => 
     hintsEnabled: false,
     manualWeatherLocation: "Jacksonville, FL",
     theme: "dark",
+    textSize: "system",
     temperatureUnit: "celsius",
     windUnit: "kmh",
     precipitationUnit: "mm",
@@ -80,6 +81,7 @@ test("invalid persisted unit values fail back to supported defaults", () => {
       temperatureUnit: "kelvin",
       windUnit: "knots",
       precipitationUnit: "feet",
+      textSize: "giant",
     }),
   );
 
@@ -87,4 +89,16 @@ test("invalid persisted unit values fail back to supported defaults", () => {
   assert.equal(preferences.temperatureUnit, "celsius");
   assert.equal(preferences.windUnit, "kmh");
   assert.equal(preferences.precipitationUnit, "mm");
+  assert.equal(preferences.textSize, "system");
+});
+
+test("text-size preference persists alongside weather presentation settings", () => {
+  const preferences = {
+    ...DEFAULT_PREFERENCES,
+    textSize: "extra-large",
+    temperatureUnit: "fahrenheit",
+  };
+
+  savePreferences(preferences);
+  assert.equal(loadPreferences().textSize, "extra-large");
 });
