@@ -13,6 +13,11 @@ import {
   savePreferences,
   type Preferences,
 } from "./state/preferences";
+import {
+  clearWeatherCache,
+  loadWeatherCache,
+  saveWeatherCache,
+} from "./state/weather-cache";
 
 const feedsClient = createFeedsClient();
 const weatherProvider = new OpenMeteoWeatherProvider();
@@ -21,6 +26,7 @@ interface WeatherRuntimeState {
   loading: boolean;
   error: string | null;
   forecast: WeatherForecast | null;
+  cached: boolean;
 }
 
 interface RuntimeState {
@@ -79,11 +85,21 @@ function formatLocation(forecast: WeatherForecast): string {
   return values.join(", ");
 }
 
-function formatLastUpdated(iso: string): string {
+function formatFreshness(iso: string, cached: boolean): string {
   const date = new Date(iso);
-  return Number.isNaN(date.valueOf())
-    ? "Updated recently"
-    : `Updated ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+  if (Number.isNaN(date.valueOf())) {
+    return cached ? "Cached forecast · update time unavailable" : "Updated recently";
+  }
+
+  const ageMinutes = Math.max(0, Math.floor((Date.now() - date.valueOf()) / 60_000));
+  const age =
+    ageMinutes < 1
+      ? "just now"
+      : ageMinutes < 60
+        ? `${ageMinutes} minute${ageMinutes === 1 ? "" : "s"} ago`
+        : `${Math.floor(ageMinutes / 60)} hour${Math.floor(ageMinutes / 60) === 1 ? "" : "s"} ago`;
+
+  return `${cached ? "Cached forecast · " : ""}Last updated ${age}`;
 }
 
 function hourLabel(value: string): string {
@@ -210,7 +226,10 @@ function homeWeatherCard(state: RuntimeState): string {
             <p class="eyebrow">Weather</p>
             <h2>${escapeHtml(locationText)}</h2>
           </div>
-          <span class="status-dot ready" aria-label="Forecast loaded"></span>
+          <span
+            class="status-dot ${state.weather.cached ? "cached" : "ready"}"
+            aria-label="${state.weather.cached ? "Cached forecast loaded" : "Fresh forecast loaded"}"
+          ></span>
         </div>
         <div class="weather-current" aria-live="polite">
           <strong>${temperature(forecast.current.temperatureCelsius)}</strong>
@@ -223,7 +242,7 @@ function homeWeatherCard(state: RuntimeState): string {
         </div>
         <div class="weather-quick">
           <span>Precipitation ${percentage(today?.precipitationProbabilityPercent)}</span>
-          <span>${formatLastUpdated(forecast.fetchedAt)}</span>
+          <span>${formatFreshness(forecast.fetchedAt, state.weather.cached)}</span>
         </div>
       </article>
     `;
@@ -322,7 +341,7 @@ function newsView(state: RuntimeState): string {
   `;
 }
 
-function currentWeatherPanel(forecast: WeatherForecast): string {
+function currentWeatherPanel(forecast: WeatherForecast, cached: boolean): string {
   const current = forecast.current;
   return `
     <article class="glass-card current-detail-card">
@@ -338,7 +357,7 @@ function currentWeatherPanel(forecast: WeatherForecast): string {
         <div><span>Wind</span><strong>${current.windSpeedKmh === undefined ? "—" : `${Math.round(current.windSpeedKmh)} km/h`}</strong></div>
         <div><span>Precipitation</span><strong>${millimeters(current.precipitationMm)}</strong></div>
       </div>
-      <p class="quiet">${formatLastUpdated(forecast.fetchedAt)}</p>
+      <p class="quiet">${escapeHtml(formatFreshness(forecast.fetchedAt, cached))}</p>
     </article>
   `;
 }
@@ -433,13 +452,14 @@ function weatherView(state: RuntimeState): string {
             ${state.weather.loading ? "Loading…" : "Load forecast"}
           </button>
         </form>
-        ${state.weather.error ? `<p class="error-message" role="alert">${escapeHtml(state.weather.error)}</p>` : ""}
+        ${state.weather.error ? `<p class="error-message" role="alert">${escapeHtml(state.weather.error)}${state.weather.cached && forecast ? " Showing the last cached forecast." : ""}</p>` : ""}
       </article>
 
       ${forecast
         ? `
           <div class="weather-detail-stack">
-            ${currentWeatherPanel(forecast)}
+            ${state.weather.cached ? '<p class="cache-banner" role="status">Offline cache · Refreshing will replace this snapshot when the provider is reachable.</p>' : ""}
+            ${currentWeatherPanel(forecast, state.weather.cached)}
             ${hourlyPanel(forecast)}
             ${dailyPanel(forecast)}
             <p class="attribution">
@@ -507,14 +527,18 @@ function settingsPanel(state: RuntimeState): string {
 }
 
 export function createNewsWeatherApp(root: HTMLElement): void {
+  const preferences = loadPreferences();
+  const cachedWeather = loadWeatherCache(preferences.manualWeatherLocation);
+
   const state: RuntimeState = {
     route: "home",
     settingsOpen: false,
-    preferences: loadPreferences(),
+    preferences,
     weather: {
       loading: false,
       error: null,
-      forecast: null,
+      forecast: cachedWeather?.forecast ?? null,
+      cached: cachedWeather !== null,
     },
     feedsStatus: null,
   };
@@ -593,7 +617,8 @@ export function createNewsWeatherApp(root: HTMLElement): void {
     const requestId = ++weatherRequestSequence;
 
     if (!normalized) {
-      state.weather = { loading: false, error: null, forecast: null };
+      clearWeatherCache();
+      state.weather = { loading: false, error: null, forecast: null, cached: false };
       await render();
       return;
     }
@@ -602,19 +627,22 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       loading: true,
       error: null,
       forecast: state.weather.forecast,
+      cached: state.weather.cached,
     };
     await render();
 
     try {
       const forecast = await weatherProvider.getForecastForQuery(normalized);
       if (requestId !== weatherRequestSequence) return;
-      state.weather = { loading: false, error: null, forecast };
+      saveWeatherCache(normalized, forecast);
+      state.weather = { loading: false, error: null, forecast, cached: false };
     } catch (error) {
       if (requestId !== weatherRequestSequence) return;
       state.weather = {
         loading: false,
         error: error instanceof Error ? error.message : "Weather could not be loaded.",
         forecast: state.weather.forecast,
+        cached: state.weather.cached,
       };
     }
 
@@ -700,6 +728,15 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       event.preventDefault();
       const location =
         root.querySelector<HTMLInputElement>("#weather-location")?.value.trim().slice(0, 160) ?? "";
+      const changed = location.localeCompare(state.preferences.manualWeatherLocation, undefined, {
+        sensitivity: "accent",
+      }) !== 0;
+
+      if (changed) {
+        clearWeatherCache();
+        state.weather = { loading: false, error: null, forecast: null, cached: false };
+      }
+
       updatePreferences({ ...state.preferences, manualWeatherLocation: location });
       void refreshWeather(location);
     });
