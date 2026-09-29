@@ -1,4 +1,9 @@
 import type { ThemePreference } from "../config/product";
+import type {
+  PrecipitationUnit,
+  TemperatureUnit,
+  WindUnit,
+} from "../weather-units";
 
 const STORAGE_KEY = "goreecloud.newsweather.preferences.v1";
 
@@ -7,6 +12,9 @@ export interface Preferences {
   readonly hintsEnabled: boolean;
   readonly manualWeatherLocation: string;
   readonly theme: ThemePreference;
+  readonly temperatureUnit: TemperatureUnit;
+  readonly windUnit: WindUnit;
+  readonly precipitationUnit: PrecipitationUnit;
 }
 
 export const DEFAULT_PREFERENCES: Preferences = Object.freeze({
@@ -14,10 +22,25 @@ export const DEFAULT_PREFERENCES: Preferences = Object.freeze({
   hintsEnabled: true,
   manualWeatherLocation: "",
   theme: "system",
+  temperatureUnit: "celsius",
+  windUnit: "kmh",
+  precipitationUnit: "mm",
 });
 
 function isThemePreference(value: unknown): value is ThemePreference {
   return value === "system" || value === "light" || value === "dark";
+}
+
+function isTemperatureUnit(value: unknown): value is TemperatureUnit {
+  return value === "celsius" || value === "fahrenheit";
+}
+
+function isWindUnit(value: unknown): value is WindUnit {
+  return value === "kmh" || value === "mph";
+}
+
+function isPrecipitationUnit(value: unknown): value is PrecipitationUnit {
+  return value === "mm" || value === "inches";
 }
 
 export function loadPreferences(): Preferences {
@@ -36,6 +59,13 @@ export function loadPreferences(): Preferences {
           ? parsed.manualWeatherLocation.slice(0, 160)
           : "",
       theme: isThemePreference(parsed.theme) ? parsed.theme : "system",
+      temperatureUnit: isTemperatureUnit(parsed.temperatureUnit)
+        ? parsed.temperatureUnit
+        : "celsius",
+      windUnit: isWindUnit(parsed.windUnit) ? parsed.windUnit : "kmh",
+      precipitationUnit: isPrecipitationUnit(parsed.precipitationUnit)
+        ? parsed.precipitationUnit
+        : "mm",
     };
   } catch {
     return DEFAULT_PREFERENCES;
