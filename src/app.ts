@@ -420,7 +420,7 @@ function dailyPanel(forecast: WeatherForecast, preferences: Preferences): string
                   <strong>${escapeHtml(dateLabel(day.date))}</strong>
                   <span>${escapeHtml(weatherCodeDescription(day.weatherCode))}</span>
                 </div>
-                <span class="day-precip">${percentage(day.precipitationProbabilityPercent)}</span>
+                <span class="day-precip">${percentage(day.precipitationProbabilityPercent)} · ${precipitation(day.precipitationMm, preferences)}</span>
                 <span class="day-temps"><strong>${temperature(day.highCelsius, preferences)}</strong> ${temperature(day.lowCelsius, preferences)}</span>
               </article>
             `,
