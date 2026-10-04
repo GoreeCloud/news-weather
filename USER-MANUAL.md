@@ -35,7 +35,13 @@ Home is intentionally bounded. The current Development source can present the ma
 
 ## News
 
-News is intended to show articles from user-selected RSS/Atom sources in chronological order by default. The current Development source now understands the verified Feeds `articles:list-v1` contract and can render returned chronological article summaries with source, publication time, unread, and saved-state labels. Publisher links are limited to HTTP/HTTPS. The default Feeds runtime still requires approved user-context and PostgreSQL wiring before ordinary end-to-end article availability is established.
+News is intended to show articles from user-selected RSS/Atom sources in chronological order by default. The current Development source understands the verified Feeds `articles:list-v1` contract and can render returned chronological article summaries with source, publication time, unread, and saved-state labels. Publisher links are limited to HTTP/HTTPS. GoreeCloud Feeds can optionally open/migrate PostgreSQL in Development, but it still withholds article listing until an approved user-context resolver exists, so ordinary end-to-end live article availability is not yet established.
+
+## Search
+
+The Search action currently performs a private local search over recent article summaries already loaded or cached by News & Weather. It matches title, source name, and available summary text without changing chronological ordering. Queries are bounded, are not stored as search history, and are not sent to GoreeCloud Feeds, publishers, or another provider.
+
+This is not the future authoritative Feeds full-text/source/folder search contract. Content that is not already present in the loaded or bounded cached summaries cannot be found by this local search.
 
 ## Weather
 
