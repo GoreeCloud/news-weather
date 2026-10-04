@@ -11,6 +11,11 @@ import {
   type NewsFeedStatus,
 } from "./integrations/feeds";
 import {
+  MAX_LOCAL_NEWS_SEARCH_QUERY_LENGTH,
+  normalizeLocalNewsSearchQuery,
+  searchLocalNewsArticles,
+} from "./news-search";
+import {
   OpenMeteoWeatherProvider,
   weatherCodeDescription,
   type WeatherForecast,
@@ -63,6 +68,8 @@ interface WeatherRuntimeState {
 interface RuntimeState {
   route: Route;
   settingsOpen: boolean;
+  searchOpen: boolean;
+  searchQuery: string;
   preferences: Preferences;
   weather: WeatherRuntimeState;
   feedsStatus: NewsFeedStatus | null;
@@ -231,6 +238,91 @@ function headlineList(
       `,
     )
     .join("");
+}
+
+function localSearchResults(state: RuntimeState, query: string): string {
+  const normalized = normalizeLocalNewsSearchQuery(query);
+
+  if (state.articles.length === 0) {
+    return `
+      <div class="search-empty">
+        <strong>No recent headlines to search</strong>
+        <p>Search becomes useful after live or cached article summaries are available.</p>
+      </div>
+    `;
+  }
+
+  if (!normalized) {
+    return `
+      <div class="search-empty">
+        <strong>Search recent headlines</strong>
+        <p>Matches title, source, and loaded summary text locally on this device.</p>
+      </div>
+    `;
+  }
+
+  const results = searchLocalNewsArticles(state.articles, normalized);
+  if (results.length === 0) {
+    return `
+      <div class="search-empty">
+        <strong>No matches</strong>
+        <p>No loaded or cached headline summary matches “${escapeHtml(normalized)}”.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="search-result-heading">
+      <p class="quiet">${results.length} match${results.length === 1 ? "" : "es"} · local recent summaries only</p>
+    </div>
+    ${state.newsCached ? newsCacheNotice(state) : ""}
+    <div class="article-list search-result-list">
+      ${headlineList(results, results.length)}
+    </div>
+  `;
+}
+
+function searchPanel(state: RuntimeState): string {
+  if (!state.searchOpen) return "";
+
+  return `
+    <div class="scrim" id="search-scrim">
+      <section class="settings-panel search-panel" role="dialog" aria-modal="true" aria-labelledby="search-title">
+        <div class="settings-header">
+          <div>
+            <p class="eyebrow">Local recent news</p>
+            <h2 id="search-title">Search</h2>
+          </div>
+          <button class="icon-button" id="close-search" aria-label="Close search">×</button>
+        </div>
+
+        <form id="news-search-form" class="search-form">
+          <label class="field">
+            <span>Title, source, or summary</span>
+            <input
+              id="news-search-query"
+              type="search"
+              maxlength="${MAX_LOCAL_NEWS_SEARCH_QUERY_LENGTH}"
+              autocomplete="off"
+              spellcheck="false"
+              value="${escapeHtml(state.searchQuery)}"
+              placeholder="Search recent headlines"
+            />
+          </label>
+          <button class="button primary" type="submit">Search</button>
+        </form>
+
+        <p class="quiet search-privacy-note">
+          Search runs only against article summaries already loaded or cached by News & Weather.
+          The query is not sent to GoreeCloud Feeds, publishers, or another provider.
+        </p>
+
+        <div id="news-search-results" class="search-results" aria-live="polite">
+          ${localSearchResults(state, state.searchQuery)}
+        </div>
+      </section>
+    </div>
+  `;
 }
 
 function sameWeatherLocation(left: string, right: string): boolean {
@@ -823,6 +915,8 @@ export function createNewsWeatherApp(root: HTMLElement): void {
   const state: RuntimeState = {
     route: "home",
     settingsOpen: false,
+    searchOpen: false,
+    searchQuery: "",
     preferences,
     weather: {
       loading: false,
@@ -894,9 +988,7 @@ export function createNewsWeatherApp(root: HTMLElement): void {
             <button
               class="button ghost"
               id="search-action"
-              disabled
-              aria-disabled="true"
-              title="Search activates after GoreeCloud Feeds publishes and exposes article search endpoints"
+              title="Search recent loaded and cached headlines on this device"
             >
               Search
             </button>
@@ -925,6 +1017,7 @@ export function createNewsWeatherApp(root: HTMLElement): void {
           ${navigation(state)}
         </nav>
 
+        ${searchPanel(state)}
         ${settingsPanel(state)}
       </div>
     `;
@@ -977,6 +1070,39 @@ export function createNewsWeatherApp(root: HTMLElement): void {
   }
 
   function wireEvents(): void {
+    root.querySelector<HTMLButtonElement>("#search-action")?.addEventListener("click", () => {
+      state.settingsOpen = false;
+      state.searchOpen = true;
+      void render().then(() => {
+        root.querySelector<HTMLInputElement>("#news-search-query")?.focus();
+      });
+    });
+
+    root.querySelector<HTMLButtonElement>("#close-search")?.addEventListener("click", () => {
+      state.searchOpen = false;
+      void render();
+    });
+
+    root.querySelector<HTMLElement>("#search-scrim")?.addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) {
+        state.searchOpen = false;
+        void render();
+      }
+    });
+
+    root.querySelector<HTMLFormElement>("#news-search-form")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const input = root.querySelector<HTMLInputElement>("#news-search-query");
+      const query = normalizeLocalNewsSearchQuery(input?.value ?? "");
+      state.searchQuery = query;
+      if (input) input.value = query;
+
+      const results = root.querySelector<HTMLElement>("#news-search-results");
+      if (results) {
+        results.innerHTML = localSearchResults(state, query);
+      }
+    });
+
     root.querySelectorAll<HTMLButtonElement>("[data-route]").forEach((button) => {
       button.addEventListener("click", () => {
         const nextRoute = button.dataset.route;
@@ -988,6 +1114,7 @@ export function createNewsWeatherApp(root: HTMLElement): void {
     });
 
     root.querySelector<HTMLButtonElement>("#settings-action")?.addEventListener("click", () => {
+      state.searchOpen = false;
       state.settingsOpen = true;
       state.settingsMessage = null;
       state.settingsMessageError = false;
