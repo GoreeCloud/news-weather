@@ -3,7 +3,7 @@ import {
   normalizeSavedWeatherLocations,
   normalizeWeatherLocation,
   type Preferences,
-} from "./preferences";
+} from "./preferences.ts";
 import type { TextSizePreference, ThemePreference } from "../config/product";
 import type {
   PrecipitationUnit,
