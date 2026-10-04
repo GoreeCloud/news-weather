@@ -16,8 +16,24 @@ export interface LoadedNewsCache {
   readonly savedAt: string;
 }
 
+const allowedArticleKeys = new Set([
+  "id",
+  "title",
+  "sourceName",
+  "publishedAt",
+  "unread",
+  "bookmarked",
+  "summary",
+  "url",
+  "thumbnailUrl",
+]);
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasOnlyAllowedArticleKeys(value: Record<string, unknown>): boolean {
+  return Object.keys(value).every((key) => allowedArticleKeys.has(key));
 }
 
 function isSafeHttpUrl(value: string): boolean {
@@ -33,6 +49,7 @@ function isSafeHttpUrl(value: string): boolean {
 function normalizeArticle(value: unknown): NewsArticleSummary | null {
   if (
     !isRecord(value) ||
+    !hasOnlyAllowedArticleKeys(value) ||
     typeof value.id !== "string" ||
     !value.id.trim() ||
     typeof value.title !== "string" ||
@@ -61,6 +78,13 @@ function normalizeArticle(value: unknown): NewsArticleSummary | null {
   if (
     value.url !== undefined &&
     (typeof value.url !== "string" || !isSafeHttpUrl(value.url))
+  ) {
+    return null;
+  }
+
+  if (
+    value.thumbnailUrl !== undefined &&
+    (typeof value.thumbnailUrl !== "string" || !isSafeHttpUrl(value.thumbnailUrl))
   ) {
     return null;
   }
@@ -161,7 +185,9 @@ export function saveNewsCache(
   };
 
   try {
-    globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(record));
+    const storage = globalThis.localStorage;
+    if (!storage) return null;
+    storage.setItem(STORAGE_KEY, JSON.stringify(record));
   } catch {
     return null;
   }
