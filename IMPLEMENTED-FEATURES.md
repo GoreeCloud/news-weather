@@ -19,6 +19,7 @@ As of 2026-10-04, authoritative `main` contains the following source-implemented
 - Capability-gated consumption of the verified Feeds `articles:list-v1` contract with bounded 1..100 requests, strict response parsing, server-context credentials, safe HTTP/HTTPS publisher URLs, and no client-supplied user identifier.
 - Bounded chronological Home/News article presentation with source, publication-time, unread, and saved-state labels; article requests occur only when Feeds advertises the capability.
 - Privacy-bounded offline news summary cache: up to 50 validated article summaries for up to 24 hours, deduplicated by article ID, with exact persisted-shape validation, explicit cached/stale labeling, and safe fallback when live Feeds article listing is unavailable.
+- Private local recent-news search across already-loaded/cached article title, source name, and summary fields, bounded to 160 query characters, eight terms, and 50 results while preserving chronological order and sending no search query over the network.
 - Provider-independent GoreeCloud weather domain models.
 - Open-Meteo Development adapter for manual-place geocoding, current conditions, hourly forecast, and seven-day forecast.
 - Manual-place weather UI with current conditions, precipitation, wind speed and direction, humidity, sunrise/sunset, hourly, and seven-day presentation.
@@ -46,7 +47,8 @@ As of 2026-10-04, authoritative `main` contains the following source-implemented
 - PR #21 settings-portability head `b0b4cd2a86c8bbd3a3983f90f0aa52a7ef30cb48` passed Source Foundation run `37220270573`, Unit Tests run `37220270439`, and Native Source Compile run `37220270406` before merge.
 - PR #24 Feeds article-client head `88a13979b93b14dd3c63daa275eb9edee0b4d1bc` passed Source Foundation run `37222481694`, Unit Tests run `37222481718`, and Native Source Compile run `37222481699` before merge.
 - PR #26 offline-news-cache head `c0dfb2435b526994629eebbe7f4880574dd7dc0d` passed Source Foundation run `37223081314`, Unit Tests run `37223081276`, and Native Source Compile run `37223081278` before merge.
-- Current authoritative source revision after these milestones is `959c261bac1178fea1de40e53a8915cb44ab5b6a`.
+- PR #28 local-search head `9f537c348b2986f28b8c6464df37833703abec01` passed Source Foundation run `37224510058`, Unit Tests run `37224510224`, and Native Source Compile run `37224510044` before merge.
+- Current authoritative source revision after these milestones is `c2aa6df47dae3629e83d9ba3ce9f727cb68fae0a`.
 
 The Source Foundation workflow verifies repository baseline, strict TypeScript type-checking, web source build, and Rust formatting and does **not** establish live-provider runtime acceptance or native target acceptance. Native Source Compile separately verifies Tauri Rust source compilation on Linux and Windows; that stronger source evidence still does **not** establish installer/package creation, representative native runtime behavior, device acceptance, or release acceptance.
 
@@ -54,7 +56,7 @@ The Source Foundation workflow verifies repository baseline, strict TypeScript t
 
 Do not describe the following as completed or released:
 
-- End-to-end GoreeCloud Feeds runtime article availability with an approved authenticated/local-only user-context resolver and PostgreSQL runtime wiring; full offline publisher/article content, source management, folders, article search, OPML flows, and write-state synchronization also remain unavailable.
+- End-to-end GoreeCloud Feeds runtime article availability with an approved authenticated/local-only user-context resolver and representative retrieval through the optional PostgreSQL runtime; full offline publisher/article content, source management, folders, server-side/full-text/source/folder search, OPML flows, and write-state synchronization also remain unavailable.
 - Live end-to-end Open-Meteo runtime acceptance in a representative browser/native client.
 - Current-device location permission or GoreeCloud Location integration.
 - Official severe-weather alert integration.
