@@ -8,11 +8,11 @@ The product is designed as a utility: selected news sources, useful weather info
 
 ## Current status
 
-This repository is in **Development**. It now contains a source-validated TypeScript/Vite application shell, Tauri 2 source configuration, a verified GoreeCloud Feeds Development capability handshake, a provider-independent manual-place weather path using an Open-Meteo Development adapter, and a bounded last-successful forecast cache.
+This repository is in **Development**. It now contains a source-validated TypeScript/Vite application shell, Tauri 2 source configuration, a verified GoreeCloud Feeds Development capability handshake, a provider-independent manual-place weather path using an Open-Meteo Development adapter, bounded last-successful forecast caching, weather unit/text-size preferences, wind/sun details, and local saved manual places.
 
 These are source-level Development capabilities. No Android, Linux, Windows, or representative browser runtime acceptance, live-provider acceptance, GoreeCloud platform-system acceptance, release artifact, Production state, or Stable state is verified.
 
-The initial target release is **0.1.0 Development**.
+The initial target release is **0.1.0 Development**. The current shared design-system target is **Glaze V1.7 / 1.7.0**, with downstream repository-local acceptance still incomplete.
 
 ## Product principles
 
