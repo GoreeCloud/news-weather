@@ -1,6 +1,6 @@
 # GoreeCloud News & Weather — Changelog
 
-This repository is in Development initialization. No user-facing release is verified.
+This repository is in Development. No user-facing release is verified.
 
 ## Unreleased
 
@@ -18,6 +18,9 @@ This repository is in Development initialization. No user-facing release is veri
 - Development source CI covering repository verification, strict TypeScript checking, web build, and Rust formatting.
 - Local weather-unit preferences for Celsius/Fahrenheit, km/h/mph, and millimeters/inches, with legacy-safe defaults and presentation-only conversion.
 - Local system/default, large, and extra-large text-size preferences that build on browser/platform scaling, plus viewport-bounded Settings scrolling for large text.
+- Current Glaze target updated to Glaze V1.7 / 1.7.0 with explicit adoption-required status.
+- Wind-direction, sunrise, and sunset presentation using already-normalized weather data.
+- Up to eight local saved manual weather places with normalization, deduplication, quick switching, removal, and place-text-only storage.
 
 ## 0.1.0 Development
 

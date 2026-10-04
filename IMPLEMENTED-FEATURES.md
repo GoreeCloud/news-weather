@@ -4,7 +4,7 @@ This file records verified implementation state and distinguishes source verific
 
 ## Current verified source state
 
-As of 2026-09-29, authoritative `main` contains the following source-implemented Development foundations:
+As of 2026-10-04, authoritative `main` contains the following source-implemented Development foundations:
 
 - TypeScript/Vite application shell with Home, News, and Weather navigation.
 - Local Settings surface with system/light/dark theme preferences.
@@ -18,12 +18,14 @@ As of 2026-09-29, authoritative `main` contains the following source-implemented
 - Explicit refusal to invent article endpoints that are not present in the verified Feeds Development contract.
 - Provider-independent GoreeCloud weather domain models.
 - Open-Meteo Development adapter for manual-place geocoding, current conditions, hourly forecast, and seven-day forecast.
-- Manual-place weather UI with current conditions, precipitation, wind, humidity, hourly and daily presentation.
+- Manual-place weather UI with current conditions, precipitation, wind speed and direction, humidity, sunrise/sunset, hourly, and seven-day presentation.
 - Provider attribution and third-party notice records.
 - Bounded 24-hour last-successful normalized weather cache.
 - Same-location cache matching, invalidation when the manual place changes, automatic refresh, and explicit cached/stale presentation.
+- Up to eight local saved manual weather places, normalized and deduplicated while storing place text only.
 - Scoped Content Security Policy allowing only the required Open-Meteo endpoints plus Development loopback Feeds connections.
 - Repository/platform governance baseline and Platform Contract 0.4 manifest.
+- Current shared design-system target updated to Glaze V1.7 / 1.7.0 with repository-local adoption explicitly still required.
 
 ## Verification evidence
 
@@ -33,7 +35,10 @@ As of 2026-09-29, authoritative `main` contains the following source-implemented
 - PR #8 provider/cache tests head `5afef4191d8971fd369c24d2dea15a837dce8250` passed Source Foundation run `36546118757` and Unit Tests run `36546118799` before merge.
 - PR #9 weather-unit preferences head `55d4f6a7f27e1c9553238359485a2e9dcb151d4e` passed Source Foundation run `36546673081` and Unit Tests run `36546673063` before merge.
 - PR #10 text-size accessibility head `f5cbfe1c57e922defa6a956d94d8b6f7c9c3f1d1` passed Source Foundation run `36546996822` and Unit Tests run `36546996814` before merge.
-- Current authoritative source revision after these milestones is `63aa9b8b27f71692e5a713ac37cc33baaac4e9a5`.
+- PR #12 Glaze target head `5187464bf0ab7d8606b08cb75d77576c5e8a9376` passed Source Foundation run `37218196729` and Unit Tests run `37218196727` before merge.
+- PR #14 weather-detail head `f0a5d61addb181ae76f8bf95267981ea71948197` passed Source Foundation run `37218354585` and Unit Tests run `37218354578` before merge.
+- PR #15 saved-weather-place head `6327fc28fb234219a89ceeffea23acb140bbc2b6` passed Source Foundation run `37218627169` and Unit Tests run `37218627162` before merge.
+- Current authoritative source revision after these milestones is `d70a8b001a52a4b0c3ac62307e5e0c96ed9a9ea1`.
 
 The Source Foundation workflow verifies repository baseline, strict TypeScript type-checking, web source build, and Rust formatting. It does **not** establish live-provider runtime acceptance or native target acceptance.
 
@@ -47,7 +52,7 @@ Do not describe the following as completed or released:
 - Official severe-weather alert integration.
 - Android, Linux, or Windows native build/install/runtime acceptance.
 - Representative browser runtime/accessibility acceptance.
-- Glaze UI downstream consumer acceptance.
+- Glaze V1.7 downstream consumer acceptance.
 - Privacy Shield, Wardveil Security, Everkeep, Manager, Mesh, Identity, Policy, or Observability runtime acceptance.
 - GoreeCloud Sync or Notify runtime integration.
 - Signed release packaging.

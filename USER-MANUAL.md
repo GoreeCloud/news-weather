@@ -39,13 +39,15 @@ News is intended to show articles from user-selected RSS/Atom sources in chronol
 
 ## Weather
 
-Weather currently supports manual-place lookup through the Open-Meteo Development adapter. The entered place text is stored locally; resolved coordinates are transient. Current-device location is not implemented yet and no GPS permission is requested.
+Weather currently supports manual-place lookup through the Open-Meteo Development adapter. The current-condition view includes feels-like temperature, humidity, wind speed, wind direction, precipitation, sunrise, and sunset where available. The entered place text is stored locally; resolved coordinates are transient. Current-device location is not implemented yet and no GPS permission is requested.
 
 The latest successful normalized forecast is cached for up to 24 hours for the same manual place. Cached forecasts are labeled as cached/stale and show freshness information while the app attempts a live refresh.
 
+Up to eight manual places can be saved locally for quick switching. Saved places store normalized place text only. Saving, selecting, or removing a place does not require an account or GPS permission.
+
 ## Settings
 
-The current Development Settings surface provides theme, text-size, contextual-hint, temperature-unit, wind-unit, and precipitation-unit controls. Temperature can be shown in Celsius or Fahrenheit, wind in km/h or mph, and precipitation in millimeters or inches. Unit choices are local presentation preferences; cached/provider weather remains normalized internally. Additional planned Settings areas include sources, folders, notifications, text size, refresh/cache controls, privacy permissions, synchronization, and import/export.
+The current Development Settings surface provides theme, text-size, contextual-hint, temperature-unit, wind-unit, and precipitation-unit controls. Temperature can be shown in Celsius or Fahrenheit, wind in km/h or mph, and precipitation in millimeters or inches. Unit choices are local presentation preferences; cached/provider weather remains normalized internally. Saved weather places are managed directly on Weather. Additional planned Settings areas include sources, folders, notifications, refresh/cache controls, privacy permissions, synchronization, and import/export.
 
 ## Offline behavior
 

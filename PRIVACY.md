@@ -20,6 +20,8 @@ The product must not introduce:
 
 Manual weather locations must be fully supported.
 
+The current Development source can retain up to eight saved manual-place strings locally for quick access. Saved-place values are normalized and deduplicated; provider-resolved latitude/longitude are not stored in the saved-place list.
+
 Current-location weather must require an explicit user action. The implementation must explain why permission is needed, request only necessary precision, avoid retaining precise coordinates longer than necessary, and prefer normalized named/forecast locations for saved places where practical.
 
 Where an approved GoreeCloud Location contract exists, use it rather than creating an unrelated location subsystem.
@@ -32,7 +34,7 @@ The product may retain bounded local state needed for useful operation, includin
 
 The current Development source keeps at most one last-successful normalized weather snapshot for the saved manual-place query, bounded to 24 hours. Changing or clearing the manual place invalidates that cache. Cached weather is explicitly identified as cached/stale and retains its last-update context while a live refresh is attempted.
 
-The Open-Meteo Development adapter persists the user's place text, not the precise coordinates returned by geocoding. Resolved coordinates are used transiently for the forecast request.
+The Open-Meteo Development adapter persists the user's active place text and bounded saved-place text list, not the precise coordinates returned by geocoding. Resolved coordinates are used transiently for the forecast request.
 
 ## Accounts and synchronization
 
