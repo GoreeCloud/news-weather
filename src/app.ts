@@ -986,11 +986,12 @@ export function createNewsWeatherApp(root: HTMLElement): void {
 
           <div class="topbar-actions">
             <button
-              class="button ghost"
+              class="icon-button"
               id="search-action"
+              aria-label="Search recent news"
               title="Search recent loaded and cached headlines on this device"
             >
-              Search
+              <span aria-hidden="true">⌕</span>
             </button>
             <button class="icon-button" id="settings-action" aria-label="Open settings">⚙</button>
           </div>
