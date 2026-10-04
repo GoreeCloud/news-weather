@@ -295,5 +295,36 @@ Merged authoritative revision: `45144738ebf88ab692189c161434ef28a38beda9`.
 
 ### Continuing Boundary
 
-This milestone establishes source-level client support for the published Feeds article contract. It does not establish that the default Feeds runtime currently advertises article listing or has accepted authenticated/local-only user-context and PostgreSQL wiring. Source management, folders, OPML, search, write-state synchronization, bounded offline news caching, representative runtime acceptance, release, Production, Release Candidate, and Stable qualification remain open.
+This milestone establishes source-level client support for the published Feeds article contract. It does not establish that the default Feeds runtime currently advertises article listing or has accepted authenticated/local-only user-context and PostgreSQL wiring. Source management, folders, OPML, search, write-state synchronization, full offline publisher/article content, representative runtime acceptance, release, Production, Release Candidate, and Stable qualification remain open.
+
+## 2026-10-04 — Bounded Offline News Summary Cache
+
+### Event
+
+PR #26 added a bounded local fallback for already-validated GoreeCloud Feeds article summaries.
+
+The cache:
+
+- stores at most 50 article summaries;
+- expires after 24 hours;
+- deduplicates by article ID;
+- retains bounded title, source name, publication time, unread/saved state, optional summary, and optional validated HTTP/HTTPS publisher URL;
+- does not retain Feeds credentials, client-supplied user identifiers, full publisher article bodies, provider coordinates, or Feeds private-database internals;
+- rejects structurally unexpected fields, malformed dates, unsafe URLs, invalid article state, malformed cache envelopes, and expired records;
+- clears stale cached headlines when a successful live request returns an empty article list;
+- remains optional when local storage is unavailable.
+
+When the Feeds article capability is absent or a live article request fails, a still-valid cache may remain visible with an explicit cached-news age and stale/unavailable message. Live results replace the fallback cache.
+
+Exact head `c0dfb2435b526994629eebbe7f4880574dd7dc0d` passed:
+
+- Source Foundation run `37223081314`.
+- Unit Tests run `37223081276`.
+- Native Source Compile run `37223081278`.
+
+Merged authoritative revision: `959c261bac1178fea1de40e53a8915cb44ab5b6a`.
+
+### Verification Boundary
+
+This milestone establishes source-level bounded article-summary persistence and fallback behavior. It does not establish full offline publisher/article reading, deployed Feeds article availability, representative browser/native runtime acceptance, release, Production, Release Candidate, or Stable qualification.
 
