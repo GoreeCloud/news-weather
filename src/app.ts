@@ -28,6 +28,12 @@ import {
   saveWeatherCache,
 } from "./state/weather-cache";
 import {
+  SETTINGS_IMPORT_MAX_BYTES,
+  mergeImportedSettings,
+  parseSettingsTransfer,
+  serializeSettingsTransfer,
+} from "./state/settings-transfer";
+import {
   formatPrecipitation,
   formatTemperature,
   formatWind,
@@ -53,6 +59,8 @@ interface RuntimeState {
   preferences: Preferences;
   weather: WeatherRuntimeState;
   feedsStatus: NewsFeedStatus | null;
+  settingsMessage: string | null;
+  settingsMessageError: boolean;
 }
 
 function escapeHtml(value: string): string {
@@ -657,6 +665,31 @@ function settingsPanel(state: RuntimeState): string {
           </p>
         </div>
 
+        <div class="settings-section" aria-labelledby="settings-portability-title">
+          <div>
+            <p class="eyebrow">Portability</p>
+            <h3 id="settings-portability-title">Import & export</h3>
+          </div>
+          <p class="quiet">
+            Export includes your local appearance, weather units, manual place, and saved-place text.
+            It excludes weather cache, onboarding state, accounts, credentials, and provider coordinates.
+          </p>
+          <div class="settings-actions">
+            <button class="button secondary" id="export-settings" type="button">⇩ Export settings</button>
+            <button class="button secondary" id="import-settings-action" type="button">⇧ Import settings</button>
+            <input
+              id="settings-import-file"
+              class="visually-hidden"
+              type="file"
+              accept="application/json,.json"
+              aria-label="Choose News & Weather settings file"
+            />
+          </div>
+          ${state.settingsMessage
+            ? `<p class="settings-message ${state.settingsMessageError ? "error" : ""}" role="${state.settingsMessageError ? "alert" : "status"}">${escapeHtml(state.settingsMessage)}</p>`
+            : ""}
+        </div>
+
         <button class="button secondary" id="replay-onboarding">Replay first-use setup</button>
       </section>
     </div>
@@ -678,6 +711,8 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       cached: cachedWeather !== null,
     },
     feedsStatus: null,
+    settingsMessage: null,
+    settingsMessageError: false,
   };
 
   let weatherRequestSequence = 0;
@@ -801,6 +836,8 @@ export function createNewsWeatherApp(root: HTMLElement): void {
 
     root.querySelector<HTMLButtonElement>("#settings-action")?.addEventListener("click", () => {
       state.settingsOpen = true;
+      state.settingsMessage = null;
+      state.settingsMessageError = false;
       void render();
     });
 
@@ -870,6 +907,79 @@ export function createNewsWeatherApp(root: HTMLElement): void {
         hintsEnabled: (event.currentTarget as HTMLInputElement).checked,
       });
       void render();
+    });
+
+    root.querySelector<HTMLButtonElement>("#export-settings")?.addEventListener("click", () => {
+      try {
+        const blob = new Blob([serializeSettingsTransfer(state.preferences)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        const date = new Date().toISOString().slice(0, 10);
+        anchor.href = url;
+        anchor.download = `goreecloud-news-weather-settings-${date}.json`;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        state.settingsMessage = "Settings export created locally.";
+        state.settingsMessageError = false;
+      } catch {
+        state.settingsMessage = "Settings export could not be created.";
+        state.settingsMessageError = true;
+      }
+      void render();
+    });
+
+    root.querySelector<HTMLButtonElement>("#import-settings-action")?.addEventListener("click", () => {
+      root.querySelector<HTMLInputElement>("#settings-import-file")?.click();
+    });
+
+    root.querySelector<HTMLInputElement>("#settings-import-file")?.addEventListener("change", (event) => {
+      const input = event.currentTarget as HTMLInputElement;
+      const file = input.files?.[0];
+      if (!file) return;
+
+      if (file.size > SETTINGS_IMPORT_MAX_BYTES) {
+        state.settingsMessage = "Settings import exceeds the 64 KiB safety limit.";
+        state.settingsMessageError = true;
+        input.value = "";
+        void render();
+        return;
+      }
+
+      void file.text().then((text) => {
+        try {
+          const imported = parseSettingsTransfer(text);
+          const next = mergeImportedSettings(state.preferences, imported);
+          const locationChanged = !sameWeatherLocation(
+            next.manualWeatherLocation,
+            state.preferences.manualWeatherLocation,
+          );
+
+          if (locationChanged) {
+            clearWeatherCache();
+            state.weather = {
+              loading: false,
+              error: null,
+              forecast: null,
+              cached: false,
+            };
+          }
+
+          updatePreferences(next);
+          state.settingsMessage = locationChanged
+            ? "Settings imported. Load the forecast to refresh the imported place."
+            : "Settings imported.";
+          state.settingsMessageError = false;
+        } catch (error) {
+          state.settingsMessage =
+            error instanceof Error ? error.message : "Settings import failed.";
+          state.settingsMessageError = true;
+        }
+
+        input.value = "";
+        void render();
+      });
     });
 
     root.querySelector<HTMLButtonElement>("#replay-onboarding")?.addEventListener("click", () => {
