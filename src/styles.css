@@ -933,3 +933,42 @@ select {
     flex-direction: column;
   }
 }
+
+.settings-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-message {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--surface-strong) 72%, transparent);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.settings-message.error {
+  border-color: color-mix(in srgb, #c84242 45%, var(--line));
+  background: color-mix(in srgb, #c84242 8%, transparent);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (max-width: 520px) {
+  .settings-actions {
+    grid-template-columns: 1fr;
+  }
+}
