@@ -289,8 +289,8 @@ function mapArticle(article: ArticleResponse): NewsArticleSummary {
     publishedAt: article.published_at ?? "",
     unread: !article.read,
     bookmarked: article.saved,
-    summary: article.summary || undefined,
-    url: article.url || undefined,
+    ...(article.summary ? { summary: article.summary } : {}),
+    ...(article.url ? { url: article.url } : {}),
   };
 }
 
