@@ -328,3 +328,35 @@ Merged authoritative revision: `959c261bac1178fea1de40e53a8915cb44ab5b6a`.
 
 This milestone establishes source-level bounded article-summary persistence and fallback behavior. It does not establish full offline publisher/article reading, deployed Feeds article availability, representative browser/native runtime acceptance, release, Production, Release Candidate, or Stable qualification.
 
+## 2026-10-04 — Private Local Recent-News Search Integrated
+
+### Event
+
+PR #28 enabled the previously disabled Search action with a privacy-bounded local search over article summaries already available to News & Weather.
+
+The implementation:
+
+- searches only article title, source name, and loaded summary text;
+- normalizes and bounds queries to 160 characters;
+- evaluates at most eight query terms;
+- returns at most 50 matches;
+- uses case-insensitive all-term matching;
+- preserves the source article order rather than introducing behavioral or relevance ranking;
+- works over live or still-valid cached summary data;
+- does not send the query to GoreeCloud Feeds, publishers, weather providers, or another search provider;
+- does not persist search-query history or add search telemetry;
+- presents explicit local-search privacy copy and truthful empty/no-match states;
+- keeps the Search control available on narrow/mobile layouts as an accessible glyph button.
+
+Exact head `9f537c348b2986f28b8c6464df37833703abec01` passed:
+
+- Source Foundation run `37224510058`.
+- Unit Tests run `37224510224`.
+- Native Source Compile run `37224510044`.
+
+Merged authoritative revision: `c2aa6df47dae3629e83d9ba3ce9f727cb68fae0a`.
+
+### Continuing Boundary
+
+This milestone establishes local search over already-loaded/cached article summaries only. It does not establish authoritative Feeds full-text search, source/folder/date search, server-side indexing, cross-device search synchronization, deployed live-article availability, representative runtime acceptance, signed release packaging, Production, Release Candidate, or Stable qualification.
+
