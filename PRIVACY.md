@@ -32,7 +32,13 @@ The current Development News client does not send or accept a client-controlled 
 
 Capability discovery omits credentials. User-scoped article requests may include the runtime's first-party credentials when the server advertises the capability. Requests use no-store behavior, reject redirects, apply no-referrer policy, and accept only HTTP/HTTPS publisher URLs from the validated article contract.
 
-The default Feeds runtime still lacks an accepted user-context resolver and PostgreSQL runtime wiring, so these source controls are not a claim of deployed article availability.
+The Feeds Development runtime can optionally open and migrate PostgreSQL, but it still lacks an accepted user-context resolver and deliberately withholds article capability without one, so these source controls are not a claim of deployed article availability.
+
+## Local news search
+
+The current Search surface operates only on article summary data already loaded into memory or the bounded local news cache. Search queries are not sent to GoreeCloud Feeds, publishers, Open-Meteo, or another third party, and the implementation does not create search-query history, behavioral ranking, or search telemetry.
+
+The local search is deliberately limited to title, source name, and loaded summary text. Broader server-side or cross-product search must use an approved GoreeCloud Feeds/Search contract rather than silently expanding client-side data collection.
 
 ## Local data
 
