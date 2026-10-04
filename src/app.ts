@@ -5,7 +5,9 @@ import {
   type ThemePreference,
 } from "./config/product";
 import {
+  ARTICLE_LIST_CAPABILITY,
   createFeedsClient,
+  type NewsArticleSummary,
   type NewsFeedStatus,
 } from "./integrations/feeds";
 import {
@@ -59,6 +61,8 @@ interface RuntimeState {
   preferences: Preferences;
   weather: WeatherRuntimeState;
   feedsStatus: NewsFeedStatus | null;
+  articles: readonly NewsArticleSummary[];
+  newsError: string | null;
   settingsMessage: string | null;
   settingsMessageError: boolean;
 }
@@ -145,6 +149,52 @@ function dateLabel(value: string): string {
     day: "numeric",
     timeZone: "UTC",
   });
+}
+
+function articleTimeLabel(value: string): string {
+  if (!value) return "Publication time unavailable";
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "Publication time unavailable";
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function articleLink(article: NewsArticleSummary): string {
+  if (!article.url) {
+    return `<span class="headline-title">${escapeHtml(article.title || "Untitled article")}</span>`;
+  }
+  return `<a class="headline-title" href="${escapeHtml(article.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(article.title || "Untitled article")}</a>`;
+}
+
+function headlineList(
+  articles: readonly NewsArticleSummary[],
+  limit: number,
+): string {
+  return articles
+    .slice(0, limit)
+    .map(
+      (article) => `
+        <article class="headline-row">
+          <div class="headline-copy">
+            ${articleLink(article)}
+            <p>
+              ${escapeHtml(article.sourceName || "Unknown source")}
+              <span aria-hidden="true"> · </span>
+              ${escapeHtml(articleTimeLabel(article.publishedAt))}
+            </p>
+          </div>
+          <div class="headline-status" aria-label="Article state">
+            ${article.unread ? '<span class="state-badge">Unread</span>' : ""}
+            ${article.bookmarked ? '<span class="state-badge">Saved</span>' : ""}
+          </div>
+        </article>
+      `,
+    )
+    .join("");
 }
 
 function sameWeatherLocation(left: string, right: string): boolean {
@@ -325,20 +375,31 @@ function homeView(state: RuntimeState): string {
               <p class="eyebrow">News</p>
               <h2>Recent headlines</h2>
             </div>
-            <span class="count-badge">0</span>
+            <span class="count-badge">${Math.min(state.articles.length, 8)}</span>
           </div>
-          <div class="empty-state compact">
-            <strong>
-              ${state.feedsStatus?.connected ? "Feeds contract verified" : "No feed connection yet"}
-            </strong>
-            <p>
-              ${escapeHtml(
-                state.feedsStatus?.connected
-                  ? "The current Feeds 0.1.0-dev protocol exposes capability negotiation but not article endpoints yet."
-                  : state.feedsStatus?.message ?? "GoreeCloud Feeds status has not been checked.",
-              )}
-            </p>
-          </div>
+          ${state.articles.length
+            ? `<div class="headline-list">${headlineList(state.articles, 8)}</div>`
+            : `
+              <div class="empty-state compact">
+                <strong>
+                  ${state.newsError
+                    ? "News is temporarily unavailable"
+                    : state.feedsStatus?.capabilities?.includes(ARTICLE_LIST_CAPABILITY)
+                      ? "No recent articles"
+                      : state.feedsStatus?.connected
+                        ? "Article listing is not enabled"
+                        : "No feed connection yet"}
+                </strong>
+                <p>
+                  ${escapeHtml(
+                    state.newsError ??
+                      (state.feedsStatus?.connected
+                        ? "GoreeCloud Feeds must advertise the bounded articles:list-v1 capability before News & Weather requests article content."
+                        : state.feedsStatus?.message ?? "GoreeCloud Feeds status has not been checked."),
+                  )}
+                </p>
+              </div>
+            `}
         </article>
       </div>
     </section>
@@ -347,6 +408,7 @@ function homeView(state: RuntimeState): string {
 
 function newsView(state: RuntimeState): string {
   const status = state.feedsStatus;
+  const canList = status?.capabilities?.includes(ARTICLE_LIST_CAPABILITY) ?? false;
 
   return `
     <section class="page" aria-labelledby="news-title">
@@ -355,19 +417,39 @@ function newsView(state: RuntimeState): string {
           <p class="eyebrow">Chronological by default</p>
           <h1 id="news-title">News</h1>
         </div>
+        ${state.articles.length ? `<p class="quiet">${state.articles.length} recent article${state.articles.length === 1 ? "" : "s"}</p>` : ""}
       </header>
 
-      <div class="empty-state glass-card">
-        <div class="empty-icon" aria-hidden="true">▤</div>
-        <h2>${status?.connected ? "Feeds Development contract verified" : "Connect GoreeCloud Feeds"}</h2>
-        <p>
-          ${escapeHtml(
-            status?.connected
-              ? "The verified Feeds protocol currently provides capability negotiation only. News & Weather will not invent article endpoints before GoreeCloud Feeds publishes them."
-              : status?.message ?? "GoreeCloud Feeds is not configured.",
-          )}
-        </p>
-      </div>
+      ${state.articles.length
+        ? `
+          <div class="article-list glass-card">
+            ${headlineList(state.articles, state.articles.length)}
+          </div>
+        `
+        : `
+          <div class="empty-state glass-card">
+            <div class="empty-icon" aria-hidden="true">▤</div>
+            <h2>
+              ${state.newsError
+                ? "News is temporarily unavailable"
+                : canList
+                  ? "No recent articles"
+                  : status?.connected
+                    ? "Article listing is not enabled"
+                    : "Connect GoreeCloud Feeds"}
+            </h2>
+            <p>
+              ${escapeHtml(
+                state.newsError ??
+                  (status?.connected
+                    ? canList
+                      ? "The server-derived article contract is available, but this user currently has no returned articles."
+                      : "News & Weather will request articles only when GoreeCloud Feeds advertises articles:list-v1. User context remains server-owned."
+                    : status?.message ?? "GoreeCloud Feeds is not configured."),
+              )}
+            </p>
+          </div>
+        `}
     </section>
   `;
 }
@@ -711,6 +793,8 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       cached: cachedWeather !== null,
     },
     feedsStatus: null,
+    articles: [],
+    newsError: null,
     settingsMessage: null,
     settingsMessageError: false,
   };
@@ -725,6 +809,20 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       weatherProvider.getStatus(),
     ]);
     state.feedsStatus = feedsStatus;
+
+    if (feedsStatus.capabilities?.includes(ARTICLE_LIST_CAPABILITY)) {
+      try {
+        state.articles = await feedsClient.listRecentArticles(50);
+        state.newsError = null;
+      } catch (error) {
+        state.articles = [];
+        state.newsError =
+          error instanceof Error ? error.message : "Recent news could not be loaded.";
+      }
+    } else {
+      state.articles = [];
+      state.newsError = null;
+    }
 
     root.innerHTML = `
       <div class="app-shell">
