@@ -213,3 +213,49 @@ Merged authoritative revision: `d70a8b001a52a4b0c3ac62307e5e0c96ed9a9ea1`.
 
 These milestones do not establish live-provider representative runtime acceptance, current-device location, official severe-weather alerts, GoreeCloud Feeds article endpoints, Glaze consumer acceptance, native build/device acceptance, signed release artifacts, Production, Release Candidate, or Stable qualification.
 
+## 2026-10-04 — Native Source Compile Gate and Local Settings Portability
+
+### Linux and Windows Native Source Compilation
+
+PR #17 strengthened the native source gate after the first compiler run exposed missing Tauri icon derivatives.
+
+The accepted implementation:
+
+- keeps `src-tauri/icons/icon.svg` as the canonical source asset;
+- generates PNG/ICO/ICNS and other required derivatives through Tauri's icon generator before native Development build activity;
+- excludes generated icon derivatives from source control;
+- compiles Tauri Rust source on Linux and Windows in CI.
+
+Exact head `257b75eb736748f4746cf0c93c6a4d54bdd31377` passed:
+
+- Source Foundation run `37219968051`.
+- Unit Tests run `37219968052`.
+- Native Source Compile run `37219968128`, including successful Linux and Windows `cargo check --all-targets`.
+
+Merged revision: `cc407038811ed80f62dcfc2e9a172d3c0bbe3af9`.
+
+This establishes host source-compilation evidence only. It does not establish Linux/Windows package creation, installation, representative runtime acceptance, Android compilation, signing, release, Production, or Stable qualification.
+
+### Privacy-Bounded Settings Portability
+
+PR #21 added local versioned settings import/export.
+
+Portable state is limited to presentation preferences, contextual-hint preference, weather units, the active manual-place string, and saved manual-place strings. Export deliberately excludes weather cache, onboarding completion, accounts, credentials, telemetry, and provider-resolved coordinates.
+
+Import is bounded to 64 KiB, validates schema/version, normalizes saved places, preserves current onboarding completion, and clears the old weather cache if the active place changes without automatically making a provider request.
+
+Exact head `b0b4cd2a86c8bbd3a3983f90f0aa52a7ef30cb48` passed:
+
+- Source Foundation run `37220270573`.
+- Unit Tests run `37220270439`.
+- Native Source Compile run `37220270406`.
+
+Merged authoritative revision: `d00426e197df4bd0cb7fd56759c1c3c994880cc1`.
+
+### Dependency Blockers Recorded
+
+- News & Weather issue #19 records that GoreeCloud Feeds article/source/search network contracts are required before the News surface can retrieve real articles.
+- News & Weather issue #20 records that an approved one-shot current-location consumer contract is required before News & Weather may request current-device location.
+
+Manual weather use remains available without GPS or an account while those dependencies remain open.
+
