@@ -49,13 +49,13 @@ Up to eight manual places can be saved locally for quick switching. Saved places
 
 The current Development Settings surface provides theme, text-size, contextual-hint, temperature-unit, wind-unit, and precipitation-unit controls. Temperature can be shown in Celsius or Fahrenheit, wind in km/h or mph, and precipitation in millimeters or inches. Unit choices are local presentation preferences; cached/provider weather remains normalized internally. Saved weather places are managed directly on Weather.
 
-The current Settings surface can export a small versioned JSON settings file containing local appearance, weather-unit, contextual-hint, active manual-place, and saved-place preferences. It excludes weather cache, onboarding completion, accounts, credentials, telemetry, and provider-resolved coordinates. Import is bounded to 64 KiB and validates the News & Weather schema/version before applying supported values. If an imported active place differs from the current one, the old weather cache is cleared and the app waits for an explicit forecast load rather than contacting the provider automatically.
+The current Settings surface can export a small versioned JSON settings file containing local appearance, weather-unit, contextual-hint, active manual-place, and saved-place preferences. It excludes weather and news caches, onboarding completion, accounts, credentials, telemetry, and provider-resolved coordinates. Import is bounded to 64 KiB and validates the News & Weather schema/version before applying supported values. If an imported active place differs from the current one, the old weather cache is cleared and the app waits for an explicit forecast load rather than contacting the provider automatically.
 
 Additional planned Settings areas include sources, folders, notifications, refresh/cache controls, privacy permissions, and synchronization.
 
 ## Offline behavior
 
-Bounded offline news caching remains planned; the current source does not yet persist article summaries for offline use.
+The current Development source can retain up to 50 validated News article summaries locally for up to 24 hours. When a live Feeds article request fails or the configured server does not currently advertise article listing, a still-valid cached summary list may remain visible. Cached news is explicitly labeled with its saved age and an out-of-date/unavailable warning. This cache contains summary metadata only; it is not a full offline copy of publisher article content.
 
 The current Development source keeps one bounded last-successful weather snapshot for up to 24 hours and shows explicit cached/stale freshness when a live refresh cannot replace it.
 
