@@ -25,6 +25,11 @@ import {
   type Preferences,
 } from "./state/preferences";
 import {
+  clearNewsCache,
+  loadNewsCache,
+  saveNewsCache,
+} from "./state/news-cache";
+import {
   clearWeatherCache,
   loadWeatherCache,
   saveWeatherCache,
@@ -63,6 +68,8 @@ interface RuntimeState {
   feedsStatus: NewsFeedStatus | null;
   articles: readonly NewsArticleSummary[];
   newsError: string | null;
+  newsCached: boolean;
+  newsCacheSavedAt: string | null;
   settingsMessage: string | null;
   settingsMessageError: boolean;
 }
@@ -161,6 +168,35 @@ function articleTimeLabel(value: string): string {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function cacheAgeLabel(value: string | null): string {
+  if (!value) return "saved time unavailable";
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "saved time unavailable";
+
+  const ageMinutes = Math.max(0, Math.floor((Date.now() - date.valueOf()) / 60_000));
+  if (ageMinutes < 1) return "saved just now";
+  if (ageMinutes < 60) {
+    return `saved ${ageMinutes} minute${ageMinutes === 1 ? "" : "s"} ago`;
+  }
+
+  const hours = Math.floor(ageMinutes / 60);
+  return `saved ${hours} hour${hours === 1 ? "" : "s"} ago`;
+}
+
+function newsCacheNotice(state: RuntimeState): string {
+  if (!state.newsCached || state.articles.length === 0) return "";
+
+  const reason = state.newsError
+    ? "Live Feeds refresh failed; these headlines may be out of date."
+    : "Live Feeds article listing is not currently available.";
+
+  return `
+    <p class="cache-banner" role="status">
+      Cached news · ${escapeHtml(cacheAgeLabel(state.newsCacheSavedAt))}. ${escapeHtml(reason)}
+    </p>
+  `;
 }
 
 function articleLink(article: NewsArticleSummary): string {
@@ -378,7 +414,7 @@ function homeView(state: RuntimeState): string {
             <span class="count-badge">${Math.min(state.articles.length, 8)}</span>
           </div>
           ${state.articles.length
-            ? `<div class="headline-list">${headlineList(state.articles, 8)}</div>`
+            ? `${newsCacheNotice(state)}<div class="headline-list">${headlineList(state.articles, 8)}</div>`
             : `
               <div class="empty-state compact">
                 <strong>
@@ -422,6 +458,7 @@ function newsView(state: RuntimeState): string {
 
       ${state.articles.length
         ? `
+          ${newsCacheNotice(state)}
           <div class="article-list glass-card">
             ${headlineList(state.articles, state.articles.length)}
           </div>
@@ -781,6 +818,7 @@ function settingsPanel(state: RuntimeState): string {
 export function createNewsWeatherApp(root: HTMLElement): void {
   const preferences = loadPreferences();
   const cachedWeather = loadWeatherCache(preferences.manualWeatherLocation);
+  const cachedNews = loadNewsCache();
 
   const state: RuntimeState = {
     route: "home",
@@ -793,8 +831,10 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       cached: cachedWeather !== null,
     },
     feedsStatus: null,
-    articles: [],
+    articles: cachedNews?.articles ?? [],
     newsError: null,
+    newsCached: cachedNews !== null,
+    newsCacheSavedAt: cachedNews?.savedAt ?? null,
     settingsMessage: null,
     settingsMessageError: false,
   };
@@ -812,16 +852,31 @@ export function createNewsWeatherApp(root: HTMLElement): void {
 
     if (feedsStatus.capabilities?.includes(ARTICLE_LIST_CAPABILITY)) {
       try {
-        state.articles = await feedsClient.listRecentArticles(50);
+        const liveArticles = await feedsClient.listRecentArticles(50);
+        state.articles = liveArticles;
         state.newsError = null;
+        state.newsCached = false;
+        state.newsCacheSavedAt = null;
+
+        if (liveArticles.length > 0) {
+          saveNewsCache(liveArticles);
+        } else {
+          clearNewsCache();
+        }
       } catch (error) {
-        state.articles = [];
         state.newsError =
           error instanceof Error ? error.message : "Recent news could not be loaded.";
+        const fallback = loadNewsCache();
+        state.articles = fallback?.articles ?? [];
+        state.newsCached = fallback !== null;
+        state.newsCacheSavedAt = fallback?.savedAt ?? null;
       }
     } else {
-      state.articles = [];
+      const fallback = loadNewsCache();
+      state.articles = fallback?.articles ?? [];
       state.newsError = null;
+      state.newsCached = fallback !== null;
+      state.newsCacheSavedAt = fallback?.savedAt ?? null;
     }
 
     root.innerHTML = `
