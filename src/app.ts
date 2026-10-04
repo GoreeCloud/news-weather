@@ -28,6 +28,10 @@ import {
   formatTemperature,
   formatWind,
 } from "./weather-units";
+import {
+  formatForecastLocalTime,
+  formatWindDirection,
+} from "./weather-display";
 
 const feedsClient = createFeedsClient();
 const weatherProvider = new OpenMeteoWeatherProvider();
@@ -118,17 +122,6 @@ function formatFreshness(iso: string, cached: boolean): string {
         : `${Math.floor(ageMinutes / 60)} hour${Math.floor(ageMinutes / 60) === 1 ? "" : "s"} ago`;
 
   return `${cached ? "Cached forecast · " : ""}Last updated ${age}`;
-}
-
-function hourLabel(value: string): string {
-  const time = value.split("T")[1];
-  if (!time) return value;
-  const [hourText, minuteText] = time.split(":");
-  const hour = Number(hourText);
-  if (!Number.isFinite(hour)) return time;
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const displayHour = hour % 12 || 12;
-  return `${displayHour}:${minuteText ?? "00"} ${suffix}`;
 }
 
 function dateLabel(value: string): string {
@@ -365,6 +358,7 @@ function currentWeatherPanel(
   preferences: Preferences,
 ): string {
   const current = forecast.current;
+  const today = forecast.daily[0];
   return `
     <article class="glass-card current-detail-card">
       <div>
@@ -376,8 +370,11 @@ function currentWeatherPanel(
       <div class="metric-grid">
         <div><span>Feels like</span><strong>${current.apparentTemperatureCelsius === undefined ? "—" : temperature(current.apparentTemperatureCelsius, preferences)}</strong></div>
         <div><span>Humidity</span><strong>${percentage(current.relativeHumidityPercent)}</strong></div>
-        <div><span>Wind</span><strong>${wind(current.windSpeedKmh, preferences)}</strong></div>
+        <div><span>Wind speed</span><strong>${wind(current.windSpeedKmh, preferences)}</strong></div>
+        <div><span>Wind direction</span><strong>${escapeHtml(formatWindDirection(current.windDirectionDegrees))}</strong></div>
         <div><span>Precipitation</span><strong>${precipitation(current.precipitationMm, preferences)}</strong></div>
+        <div><span>Sunrise</span><strong>${escapeHtml(formatForecastLocalTime(today?.sunrise))}</strong></div>
+        <div><span>Sunset</span><strong>${escapeHtml(formatForecastLocalTime(today?.sunset))}</strong></div>
       </div>
       <p class="quiet">${escapeHtml(formatFreshness(forecast.fetchedAt, cached))}</p>
     </article>
@@ -401,7 +398,7 @@ function hourlyPanel(forecast: WeatherForecast, preferences: Preferences): strin
           .map(
             (point) => `
               <article class="hour-card">
-                <span>${escapeHtml(hourLabel(point.time))}</span>
+                <span>${escapeHtml(formatForecastLocalTime(point.time))}</span>
                 <strong>${temperature(point.temperatureCelsius, preferences)}</strong>
                 <small>${escapeHtml(weatherCodeDescription(point.weatherCode))}</small>
                 <small>${percentage(point.precipitationProbabilityPercent)} precip.</small>
