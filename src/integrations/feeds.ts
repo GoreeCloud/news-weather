@@ -270,8 +270,9 @@ async function fetchJson(endpoint: URL, credentials: RequestCredentials): Promis
       );
     }
 
-    const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
-    if (!contentType.startsWith("application/json")) {
+    const contentType =
+      response.headers?.get?.("content-type")?.toLowerCase() ?? "";
+    if (contentType && !contentType.startsWith("application/json")) {
       throw new Error("GoreeCloud Feeds response must use application/json.");
     }
 
