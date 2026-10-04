@@ -259,3 +259,41 @@ Merged authoritative revision: `d00426e197df4bd0cb7fd56759c1c3c994880cc1`.
 
 Manual weather use remains available without GPS or an account while those dependencies remain open.
 
+## 2026-10-04 — GoreeCloud Feeds Article Contract Consumed
+
+### Upstream Contract
+
+GoreeCloud Feeds established a bounded Development article-list contract on authoritative Feeds `main` at revision `56729b8a2aa7bbded7501b7a4aeac94a5b3df9ca`.
+
+The contract defines `GET /api/v1/articles`, capability `articles:list-v1`, a 1..100 item bound, explicit 400/401/503 behavior, and server-derived authenticated or approved local user context without any client-supplied user identifier.
+
+### News & Weather Client Integration
+
+PR #24 added capability-gated consumption of that contract.
+
+The News & Weather source:
+
+- requests article summaries only when Feeds advertises `articles:list-v1`;
+- validates exact response fields and bounded result size;
+- rejects non-HTTP/HTTPS article URLs;
+- validates publication timestamps when present;
+- keeps capability discovery credential-free;
+- allows first-party runtime credentials only on the user-scoped article request;
+- applies no-store, redirect refusal, no-referrer, and bounded request timeout behavior;
+- shows up to eight recent headlines on Home;
+- shows returned chronological summaries on News;
+- exposes source, publication time, unread state, and saved state;
+- preserves truthful unavailable/empty/error states when the capability or runtime user context is unavailable.
+
+Exact head `88a13979b93b14dd3c63daa275eb9edee0b4d1bc` passed:
+
+- Source Foundation run `37222481694`.
+- Unit Tests run `37222481718`.
+- Native Source Compile run `37222481699`.
+
+Merged authoritative revision: `45144738ebf88ab692189c161434ef28a38beda9`.
+
+### Continuing Boundary
+
+This milestone establishes source-level client support for the published Feeds article contract. It does not establish that the default Feeds runtime currently advertises article listing or has accepted authenticated/local-only user-context and PostgreSQL wiring. Source management, folders, OPML, search, write-state synchronization, bounded offline news caching, representative runtime acceptance, release, Production, Release Candidate, and Stable qualification remain open.
+

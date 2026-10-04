@@ -26,6 +26,14 @@ Current-location weather must require an explicit user action. The implementatio
 
 Where an approved GoreeCloud Location contract exists, use it rather than creating an unrelated location subsystem.
 
+## News server context
+
+The current Development News client does not send or accept a client-controlled Feeds user identifier. It requests article content only when the configured Feeds server advertises `articles:list-v1`; the Feeds server remains responsible for deriving authenticated or approved local user context.
+
+Capability discovery omits credentials. User-scoped article requests may include the runtime's first-party credentials when the server advertises the capability. Requests use no-store behavior, reject redirects, apply no-referrer policy, and accept only HTTP/HTTPS publisher URLs from the validated article contract.
+
+The default Feeds runtime still lacks an accepted user-context resolver and PostgreSQL runtime wiring, so these source controls are not a claim of deployed article availability.
+
 ## Local data
 
 The product may retain bounded local state needed for useful operation, including source configuration, folders, read state, bookmarks, preferences, saved locations, onboarding/hint state, bounded article cache, and the latest successful weather snapshot.
