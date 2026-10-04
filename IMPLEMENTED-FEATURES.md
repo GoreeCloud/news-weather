@@ -18,6 +18,7 @@ As of 2026-10-04, authoritative `main` contains the following source-implemented
 - GoreeCloud Feeds `0.1.0-dev` capability-handshake client with same-origin/loopback Development endpoint restrictions.
 - Capability-gated consumption of the verified Feeds `articles:list-v1` contract with bounded 1..100 requests, strict response parsing, server-context credentials, safe HTTP/HTTPS publisher URLs, and no client-supplied user identifier.
 - Bounded chronological Home/News article presentation with source, publication-time, unread, and saved-state labels; article requests occur only when Feeds advertises the capability.
+- Privacy-bounded offline news summary cache: up to 50 validated article summaries for up to 24 hours, deduplicated by article ID, with explicit cached/stale labeling and safe fallback when live Feeds article listing is unavailable.
 - Bounded offline news-summary fallback: at most 50 validated article summaries for at most 24 hours, deduplicated by article ID and explicitly labeled as cached/stale when used.
 - Provider-independent GoreeCloud weather domain models.
 - Open-Meteo Development adapter for manual-place geocoding, current conditions, hourly forecast, and seven-day forecast.
