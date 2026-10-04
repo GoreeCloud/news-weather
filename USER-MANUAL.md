@@ -31,11 +31,11 @@ Basic use must not require account creation.
 
 ## Home
 
-Home is intentionally bounded. The current Development source can present the manual-place weather summary when a forecast is available. News remains an empty, truthful state because the verified GoreeCloud Feeds 0.1.0-dev protocol does not yet expose article endpoints.
+Home is intentionally bounded. The current Development source can present the manual-place weather summary when a forecast is available and can show up to eight recent Feeds headlines when the configured Feeds server advertises `articles:list-v1`. If that capability is unavailable or the server cannot derive an approved user context, Home shows a truthful empty/error state instead of inventing content.
 
 ## News
 
-News is intended to show articles from user-selected RSS/Atom sources in chronological order by default. The current source can verify the GoreeCloud Feeds Development capability contract, but article retrieval and reading are not yet available.
+News is intended to show articles from user-selected RSS/Atom sources in chronological order by default. The current Development source now understands the verified Feeds `articles:list-v1` contract and can render returned chronological article summaries with source, publication time, unread, and saved-state labels. Publisher links are limited to HTTP/HTTPS. The default Feeds runtime still requires approved user-context and PostgreSQL wiring before ordinary end-to-end article availability is established.
 
 ## Weather
 
@@ -55,7 +55,7 @@ Additional planned Settings areas include sources, folders, notifications, refre
 
 ## Offline behavior
 
-Previously cached news may remain readable within configured limits.
+Bounded offline news caching remains planned; the current source does not yet persist article summaries for offline use.
 
 The current Development source keeps one bounded last-successful weather snapshot for up to 24 hours and shows explicit cached/stale freshness when a live refresh cannot replace it.
 
