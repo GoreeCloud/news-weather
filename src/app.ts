@@ -14,7 +14,11 @@ import {
   type WeatherForecast,
 } from "./integrations/weather";
 import {
+  MAX_SAVED_WEATHER_LOCATIONS,
+  addSavedWeatherLocation,
   loadPreferences,
+  normalizeWeatherLocation,
+  removeSavedWeatherLocation,
   savePreferences,
   type Preferences,
 } from "./state/preferences";
@@ -133,6 +137,14 @@ function dateLabel(value: string): string {
     day: "numeric",
     timeZone: "UTC",
   });
+}
+
+function sameWeatherLocation(left: string, right: string): boolean {
+  return normalizeWeatherLocation(left).localeCompare(
+    normalizeWeatherLocation(right),
+    undefined,
+    { sensitivity: "accent" },
+  ) === 0;
 }
 
 function navigation(state: RuntimeState): string {
@@ -437,6 +449,68 @@ function dailyPanel(forecast: WeatherForecast, preferences: Preferences): string
   `;
 }
 
+function savedLocationsPanel(state: RuntimeState): string {
+  const current = normalizeWeatherLocation(state.preferences.manualWeatherLocation);
+  const saved = state.preferences.savedWeatherLocations;
+  const currentIsSaved = saved.some((location) => sameWeatherLocation(location, current));
+  const atLimit = saved.length >= MAX_SAVED_WEATHER_LOCATIONS;
+
+  return `
+    <section class="saved-locations" aria-labelledby="saved-locations-title">
+      <div class="saved-locations-heading">
+        <div>
+          <p class="eyebrow">Saved places</p>
+          <h3 id="saved-locations-title">Quick access</h3>
+        </div>
+        <button
+          class="button secondary compact"
+          id="save-current-location"
+          type="button"
+          ${!current || currentIsSaved || atLimit ? "disabled" : ""}
+          title="${currentIsSaved ? "This place is already saved" : atLimit ? "Saved-place limit reached" : "Save the current manual place"}"
+        >
+          ☆ ${currentIsSaved ? "Saved" : atLimit ? "Limit reached" : "Save current"}
+        </button>
+      </div>
+      <p class="quiet">
+        Stores place text only on this device. ${saved.length}/${MAX_SAVED_WEATHER_LOCATIONS} saved.
+      </p>
+      ${saved.length
+        ? `
+          <div class="saved-location-list">
+            ${saved
+              .map(
+                (location, index) => `
+                  <div class="saved-location-row">
+                    <button
+                      class="saved-location-select"
+                      type="button"
+                      data-saved-location-index="${index}"
+                      aria-label="Load weather for ${escapeHtml(location)}"
+                    >
+                      <span aria-hidden="true">⌖</span>
+                      <span>${escapeHtml(location)}</span>
+                    </button>
+                    <button
+                      class="icon-button compact"
+                      type="button"
+                      data-remove-saved-location-index="${index}"
+                      aria-label="Remove saved place ${escapeHtml(location)}"
+                      title="Remove saved place"
+                    >
+                      ×
+                    </button>
+                  </div>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+        : '<p class="saved-location-empty">No saved places yet.</p>'}
+    </section>
+  `;
+}
+
 function weatherView(state: RuntimeState): string {
   const forecast = state.weather.forecast;
 
@@ -472,6 +546,7 @@ function weatherView(state: RuntimeState): string {
           </button>
         </form>
         ${state.weather.error ? `<p class="error-message" role="alert">${escapeHtml(state.weather.error)}${state.weather.cached && forecast ? " Showing the last cached forecast." : ""}</p>` : ""}
+        ${savedLocationsPanel(state)}
       </article>
 
       ${forecast
@@ -805,12 +880,10 @@ export function createNewsWeatherApp(root: HTMLElement): void {
 
     root.querySelector<HTMLButtonElement>("#finish-onboarding")?.addEventListener("click", () => {
       const location =
-        root.querySelector<HTMLInputElement>("#onboarding-location")?.value.trim().slice(0, 160) ?? "";
+        normalizeWeatherLocation(root.querySelector<HTMLInputElement>("#onboarding-location")?.value ?? "");
       const hints =
         root.querySelector<HTMLInputElement>("#onboarding-hints")?.checked ?? true;
-      const changed = location.localeCompare(state.preferences.manualWeatherLocation, undefined, {
-        sensitivity: "accent",
-      }) !== 0;
+      const changed = !sameWeatherLocation(location, state.preferences.manualWeatherLocation);
 
       if (changed) {
         clearWeatherCache();
@@ -839,10 +912,8 @@ export function createNewsWeatherApp(root: HTMLElement): void {
     root.querySelector<HTMLFormElement>("#weather-location-form")?.addEventListener("submit", (event) => {
       event.preventDefault();
       const location =
-        root.querySelector<HTMLInputElement>("#weather-location")?.value.trim().slice(0, 160) ?? "";
-      const changed = location.localeCompare(state.preferences.manualWeatherLocation, undefined, {
-        sensitivity: "accent",
-      }) !== 0;
+        normalizeWeatherLocation(root.querySelector<HTMLInputElement>("#weather-location")?.value ?? "");
+      const changed = !sameWeatherLocation(location, state.preferences.manualWeatherLocation);
 
       if (changed) {
         clearWeatherCache();
@@ -852,6 +923,52 @@ export function createNewsWeatherApp(root: HTMLElement): void {
       updatePreferences({ ...state.preferences, manualWeatherLocation: location });
       void refreshWeather(location);
     });
+
+    root.querySelector<HTMLButtonElement>("#save-current-location")?.addEventListener("click", () => {
+      const location = normalizeWeatherLocation(state.preferences.manualWeatherLocation);
+      if (!location) return;
+
+      updatePreferences({
+        ...state.preferences,
+        savedWeatherLocations: addSavedWeatherLocation(
+          state.preferences.savedWeatherLocations,
+          location,
+        ),
+      });
+      void render();
+    });
+
+    root.querySelectorAll<HTMLButtonElement>("[data-saved-location-index]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.savedLocationIndex);
+        const location = state.preferences.savedWeatherLocations[index];
+        if (!location) return;
+
+        if (!sameWeatherLocation(location, state.preferences.manualWeatherLocation)) {
+          clearWeatherCache();
+          state.weather = { loading: false, error: null, forecast: null, cached: false };
+        }
+
+        updatePreferences({ ...state.preferences, manualWeatherLocation: location });
+        void refreshWeather(location);
+      });
+    });
+
+    root
+      .querySelectorAll<HTMLButtonElement>("[data-remove-saved-location-index]")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          const index = Number(button.dataset.removeSavedLocationIndex);
+          updatePreferences({
+            ...state.preferences,
+            savedWeatherLocations: removeSavedWeatherLocation(
+              state.preferences.savedWeatherLocations,
+              index,
+            ),
+          });
+          void render();
+        });
+      });
   }
 
   void render().then(() => {
