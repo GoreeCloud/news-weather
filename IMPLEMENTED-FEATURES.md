@@ -44,7 +44,7 @@ As of 2026-10-04, authoritative `main` contains the following source-implemented
 - PR #21 settings-portability head `b0b4cd2a86c8bbd3a3983f90f0aa52a7ef30cb48` passed Source Foundation run `37220270573`, Unit Tests run `37220270439`, and Native Source Compile run `37220270406` before merge.
 - Current authoritative source revision after these milestones is `d00426e197df4bd0cb7fd56759c1c3c994880cc1`.
 
-The Source Foundation workflow verifies repository baseline, strict TypeScript type-checking, web source build, and Rust formatting. Native Source Compile additionally verifies Tauri Rust source compilation on Linux and Windows. These checks do **not** establish installer/package creation, representative native runtime behavior, device acceptance, or release acceptance.
+The Source Foundation workflow verifies repository baseline, strict TypeScript type-checking, web source build, and Rust formatting and does **not** establish live-provider runtime acceptance or native target acceptance. Native Source Compile separately verifies Tauri Rust source compilation on Linux and Windows; that stronger source evidence still does **not** establish installer/package creation, representative native runtime behavior, device acceptance, or release acceptance.
 
 ## Not yet verified
 
