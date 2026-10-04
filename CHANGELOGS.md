@@ -13,6 +13,7 @@ This repository is in Development. No user-facing release is verified.
 - Tauri 2 source configuration with a minimal application capability set.
 - GoreeCloud Feeds 0.1.0-dev capability-handshake client.
 - Capability-gated GoreeCloud Feeds `articles:list-v1` client with strict bounded parsing and chronological Home/News article presentation.
+- Bounded 24-hour offline news-summary cache capped at 50 validated article summaries, with stale labeling, malformed-cache rejection, and live-result replacement.
 - Provider-independent weather-domain model and Open-Meteo Development adapter.
 - Manual-place current, hourly, and seven-day weather presentation with provider attribution.
 - Bounded 24-hour last-successful weather cache with explicit cached/stale presentation and location-change invalidation.

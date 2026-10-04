@@ -36,7 +36,9 @@ The default Feeds runtime still lacks an accepted user-context resolver and Post
 
 ## Local data
 
-The product may retain bounded local state needed for useful operation, including source configuration, folders, read state, bookmarks, preferences, saved locations, onboarding/hint state, bounded article cache, and the latest successful weather snapshot.
+The product may retain bounded local state needed for useful operation, including source configuration, folders, read state, bookmarks, preferences, saved locations, onboarding/hint state, bounded article-summary cache, and the latest successful weather snapshot.
+
+The current Development news cache stores at most 50 validated article summaries for at most 24 hours. The persisted summary may contain article ID, title, source name, publication time, unread/saved state, an optional bounded summary, and an optional validated HTTP/HTTPS publisher URL. It does not store Feeds credentials, client-supplied user identifiers, full publisher article bodies, provider coordinates, or private Feeds database internals. Malformed, expired, unsafe-URL, or structurally unexpected cache records fail closed and are removed.
 
 ## Weather freshness
 
@@ -56,7 +58,7 @@ The portable settings document may include:
 - active manual weather place text; and
 - saved manual-place text.
 
-It excludes weather cache, onboarding completion state, accounts, credentials, telemetry, and provider-resolved coordinates. Imports are bounded to 64 KiB and must match the supported versioned schema. Changing the active manual place through import invalidates the previous weather cache and does not itself trigger a provider request.
+It excludes weather and news caches, onboarding completion state, accounts, credentials, telemetry, and provider-resolved coordinates. Imports are bounded to 64 KiB and must match the supported versioned schema. Changing the active manual place through import invalidates the previous weather cache and does not itself trigger a provider request.
 
 ## Accounts and synchronization
 

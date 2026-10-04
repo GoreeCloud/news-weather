@@ -18,6 +18,7 @@ The implementation must:
 - Use versioned, contract-driven integrations.
 - Apply Wardveil Security where architecturally applicable and verified.
 - Fail safely when a provider or integration is unavailable.
+- Treat locally cached news summaries as untrusted persisted data: validate their exact structure, bounded size/age, publication timestamp, and HTTP/HTTPS publisher URLs before reuse; reject malformed or unexpected cache content; do not persist arbitrary publisher HTML, executable content, credentials, or hidden server-side identity data in that cache.
 - Avoid unnecessary logging of location, identity, credentials, or reading history.
 
 ## Secrets
