@@ -167,3 +167,49 @@ The merged authoritative revision for this milestone is `63aa9b8b27f71692e5a713a
 
 These milestones strengthen source correctness and accessibility foundations. They do not establish representative rendered accessibility acceptance, assistive-technology acceptance, native-device acceptance, Glaze UI downstream acceptance, Production, Release Candidate, or Stable qualification.
 
+## 2026-10-04 — Glaze Target, Weather Details, and Saved Places Advanced
+
+### Glaze V1.7 Target
+
+PR #12 updated the News & Weather shared design-system target from the superseded GLAZE UI V1.6 baseline to **Glaze V1.7 / 1.7.0**. Exact head `5187464bf0ab7d8606b08cb75d77576c5e8a9376` passed:
+
+- Source Foundation run `37218196729`.
+- Unit Tests run `37218196727`.
+
+The repository remains adoption-required. This target update does not establish downstream rendered, accessibility, representative-platform, performance, privacy/security, rollback, release, or product acceptance.
+
+### Weather Detail Completeness
+
+PR #14 added wind-direction presentation plus today's sunrise and sunset using weather data already present in the normalized provider model. It also centralized provider-local time formatting and added deterministic direction/time tests.
+
+Exact head `f0a5d61addb181ae76f8bf95267981ea71948197` passed:
+
+- Source Foundation run `37218354585`.
+- Unit Tests run `37218354578`.
+
+Merged revision: `3659a791055cc80d6bf2b2aa2d7386f2ce278ad3`.
+
+### Saved Manual Weather Places
+
+PR #15 added a bounded local saved-place model and UI.
+
+The implementation:
+
+- stores at most eight manual-place strings;
+- normalizes whitespace and deduplicates case-insensitively;
+- stores place text only, not provider-resolved coordinates;
+- supports save, quick switch, and remove actions;
+- preserves account-optional and GPS-free basic weather use;
+- retains existing weather-cache invalidation behavior when the active place changes.
+
+Exact head `6327fc28fb234219a89ceeffea23acb140bbc2b6` passed:
+
+- Source Foundation run `37218627169`.
+- Unit Tests run `37218627162`.
+
+Merged authoritative revision: `d70a8b001a52a4b0c3ac62307e5e0c96ed9a9ea1`.
+
+### Continuing Boundaries
+
+These milestones do not establish live-provider representative runtime acceptance, current-device location, official severe-weather alerts, GoreeCloud Feeds article endpoints, Glaze consumer acceptance, native build/device acceptance, signed release artifacts, Production, Release Candidate, or Stable qualification.
+
