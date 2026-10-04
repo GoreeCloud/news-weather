@@ -14,6 +14,7 @@ As of 2026-10-04, authoritative `main` contains the following source-implemented
 - First-use onboarding with manual weather-location setup and optional contextual hints.
 - Local preference persistence with safe fallback when browser storage is unavailable.
 - Tauri 2 source configuration and minimal default capability set for planned Android, Linux, and Windows packaging.
+- Continuous Linux and Windows Tauri Rust source compilation with native icon derivatives generated from a canonical SVG source.
 - GoreeCloud Feeds `0.1.0-dev` capability-handshake client with same-origin/loopback Development endpoint restrictions.
 - Explicit refusal to invent article endpoints that are not present in the verified Feeds Development contract.
 - Provider-independent GoreeCloud weather domain models.
@@ -23,6 +24,7 @@ As of 2026-10-04, authoritative `main` contains the following source-implemented
 - Bounded 24-hour last-successful normalized weather cache.
 - Same-location cache matching, invalidation when the manual place changes, automatic refresh, and explicit cached/stale presentation.
 - Up to eight local saved manual weather places, normalized and deduplicated while storing place text only.
+- Versioned local settings export/import for portable appearance, weather-unit, hint, active-place, and saved-place preferences with a 64 KiB import ceiling and explicit exclusion of cache, onboarding state, accounts, credentials, telemetry, and provider coordinates.
 - Scoped Content Security Policy allowing only the required Open-Meteo endpoints plus Development loopback Feeds connections.
 - Repository/platform governance baseline and Platform Contract 0.4 manifest.
 - Current shared design-system target updated to Glaze V1.7 / 1.7.0 with repository-local adoption explicitly still required.
@@ -38,9 +40,11 @@ As of 2026-10-04, authoritative `main` contains the following source-implemented
 - PR #12 Glaze target head `5187464bf0ab7d8606b08cb75d77576c5e8a9376` passed Source Foundation run `37218196729` and Unit Tests run `37218196727` before merge.
 - PR #14 weather-detail head `f0a5d61addb181ae76f8bf95267981ea71948197` passed Source Foundation run `37218354585` and Unit Tests run `37218354578` before merge.
 - PR #15 saved-weather-place head `6327fc28fb234219a89ceeffea23acb140bbc2b6` passed Source Foundation run `37218627169` and Unit Tests run `37218627162` before merge.
-- Current authoritative source revision after these milestones is `d70a8b001a52a4b0c3ac62307e5e0c96ed9a9ea1`.
+- PR #17 native-source gate head `257b75eb736748f4746cf0c93c6a4d54bdd31377` passed Source Foundation run `37219968051`, Unit Tests run `37219968052`, and Native Source Compile run `37219968128` before merge.
+- PR #21 settings-portability head `b0b4cd2a86c8bbd3a3983f90f0aa52a7ef30cb48` passed Source Foundation run `37220270573`, Unit Tests run `37220270439`, and Native Source Compile run `37220270406` before merge.
+- Current authoritative source revision after these milestones is `d00426e197df4bd0cb7fd56759c1c3c994880cc1`.
 
-The Source Foundation workflow verifies repository baseline, strict TypeScript type-checking, web source build, and Rust formatting. It does **not** establish live-provider runtime acceptance or native target acceptance.
+The Source Foundation workflow verifies repository baseline, strict TypeScript type-checking, web source build, and Rust formatting and does **not** establish live-provider runtime acceptance or native target acceptance. Native Source Compile separately verifies Tauri Rust source compilation on Linux and Windows; that stronger source evidence still does **not** establish installer/package creation, representative native runtime behavior, device acceptance, or release acceptance.
 
 ## Not yet verified
 
@@ -50,7 +54,7 @@ Do not describe the following as completed or released:
 - Live end-to-end Open-Meteo runtime acceptance in a representative browser/native client.
 - Current-device location permission or GoreeCloud Location integration.
 - Official severe-weather alert integration.
-- Android, Linux, or Windows native build/install/runtime acceptance.
+- Android build/compile acceptance; Linux or Windows package/install/runtime acceptance.
 - Representative browser runtime/accessibility acceptance.
 - Glaze V1.7 downstream consumer acceptance.
 - Privacy Shield, Wardveil Security, Everkeep, Manager, Mesh, Identity, Policy, or Observability runtime acceptance.

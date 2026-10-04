@@ -36,6 +36,20 @@ The current Development source keeps at most one last-successful normalized weat
 
 The Open-Meteo Development adapter persists the user's active place text and bounded saved-place text list, not the precise coordinates returned by geocoding. Resolved coordinates are used transiently for the forecast request.
 
+## Local settings portability
+
+The current Development source supports user-initiated settings export/import without an account or cloud dependency.
+
+The portable settings document may include:
+
+- theme and text-size preference;
+- contextual-hint preference;
+- weather presentation units;
+- active manual weather place text; and
+- saved manual-place text.
+
+It excludes weather cache, onboarding completion state, accounts, credentials, telemetry, and provider-resolved coordinates. Imports are bounded to 64 KiB and must match the supported versioned schema. Changing the active manual place through import invalidates the previous weather cache and does not itself trigger a provider request.
+
 ## Accounts and synchronization
 
 Account use remains optional for basic use. When synchronization is enabled, the user should be able to understand which data categories are synchronized.
