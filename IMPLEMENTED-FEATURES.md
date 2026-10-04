@@ -16,7 +16,8 @@ As of 2026-10-04, authoritative `main` contains the following source-implemented
 - Tauri 2 source configuration and minimal default capability set for planned Android, Linux, and Windows packaging.
 - Continuous Linux and Windows Tauri Rust source compilation with native icon derivatives generated from a canonical SVG source.
 - GoreeCloud Feeds `0.1.0-dev` capability-handshake client with same-origin/loopback Development endpoint restrictions.
-- Explicit refusal to invent article endpoints that are not present in the verified Feeds Development contract.
+- Capability-gated consumption of the verified Feeds `articles:list-v1` contract with bounded 1..100 requests, strict response parsing, server-context credentials, safe HTTP/HTTPS publisher URLs, and no client-supplied user identifier.
+- Bounded chronological Home/News article presentation with source, publication-time, unread, and saved-state labels; article requests occur only when Feeds advertises the capability.
 - Provider-independent GoreeCloud weather domain models.
 - Open-Meteo Development adapter for manual-place geocoding, current conditions, hourly forecast, and seven-day forecast.
 - Manual-place weather UI with current conditions, precipitation, wind speed and direction, humidity, sunrise/sunset, hourly, and seven-day presentation.
@@ -42,7 +43,8 @@ As of 2026-10-04, authoritative `main` contains the following source-implemented
 - PR #15 saved-weather-place head `6327fc28fb234219a89ceeffea23acb140bbc2b6` passed Source Foundation run `37218627169` and Unit Tests run `37218627162` before merge.
 - PR #17 native-source gate head `257b75eb736748f4746cf0c93c6a4d54bdd31377` passed Source Foundation run `37219968051`, Unit Tests run `37219968052`, and Native Source Compile run `37219968128` before merge.
 - PR #21 settings-portability head `b0b4cd2a86c8bbd3a3983f90f0aa52a7ef30cb48` passed Source Foundation run `37220270573`, Unit Tests run `37220270439`, and Native Source Compile run `37220270406` before merge.
-- Current authoritative source revision after these milestones is `d00426e197df4bd0cb7fd56759c1c3c994880cc1`.
+- PR #24 Feeds article-client head `88a13979b93b14dd3c63daa275eb9edee0b4d1bc` passed Source Foundation run `37222481694`, Unit Tests run `37222481718`, and Native Source Compile run `37222481699` before merge.
+- Current authoritative source revision after these milestones is `45144738ebf88ab692189c161434ef28a38beda9`.
 
 The Source Foundation workflow verifies repository baseline, strict TypeScript type-checking, web source build, and Rust formatting and does **not** establish live-provider runtime acceptance or native target acceptance. Native Source Compile separately verifies Tauri Rust source compilation on Linux and Windows; that stronger source evidence still does **not** establish installer/package creation, representative native runtime behavior, device acceptance, or release acceptance.
 
@@ -50,7 +52,7 @@ The Source Foundation workflow verifies repository baseline, strict TypeScript t
 
 Do not describe the following as completed or released:
 
-- GoreeCloud Feeds article retrieval, source management, folders, read state, bookmarks, article search, OPML flows, or news reading UI backed by real article endpoints.
+- End-to-end GoreeCloud Feeds runtime article availability with an approved authenticated/local-only user-context resolver and PostgreSQL runtime wiring; source management, folders, article search, OPML flows, and write-state synchronization also remain unavailable.
 - Live end-to-end Open-Meteo runtime acceptance in a representative browser/native client.
 - Current-device location permission or GoreeCloud Location integration.
 - Official severe-weather alert integration.
