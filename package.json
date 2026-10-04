@@ -16,7 +16,9 @@
     "preview": "vite preview",
     "verify:repo": "node scripts/verify-repository.mjs",
     "tauri": "tauri",
-    "test:unit": "node --test --test-concurrency=1 tests/*.test.mjs"
+    "test:unit": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "generate:icons": "tauri icon src-tauri/icons/icon.svg",
+    "prepare:native": "npm run generate:icons && npm run build:web"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.11.5",
