@@ -4,9 +4,9 @@
   "version": "0.1.0-dev.0",
   "identifier": "com.goreecloud.newsweather",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "npm run generate:icons && npm run dev",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "npm run build:web",
+    "beforeBuildCommand": "npm run prepare:native",
     "frontendDist": "../dist"
   },
   "app": {

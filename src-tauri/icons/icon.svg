@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">GoreeCloud News &amp; Weather development icon</title>
+  <desc id="desc">A rounded square with a sun above three news lines.</desc>
+  <rect width="512" height="512" rx="112" fill="#15171a"/>
+  <circle cx="256" cy="180" r="54" fill="none" stroke="#f4f6f8" stroke-width="24"/>
+  <g stroke="#f4f6f8" stroke-width="20" stroke-linecap="round">
+    <path d="M256 78v32"/>
+    <path d="M256 250v32"/>
+    <path d="M154 180h32"/>
+    <path d="M326 180h32"/>
+    <path d="M184 108l23 23"/>
+    <path d="M305 229l23 23"/>
+    <path d="M328 108l-23 23"/>
+    <path d="M207 229l-23 23"/>
+  </g>
+  <g fill="#f4f6f8">
+    <rect x="112" y="326" width="288" height="24" rx="12"/>
+    <rect x="112" y="374" width="238" height="24" rx="12"/>
+    <rect x="112" y="422" width="176" height="24" rx="12"/>
+  </g>
+</svg>
