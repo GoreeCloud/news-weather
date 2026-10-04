@@ -1,0 +1,109 @@
+name: Android Development Build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  android-development-apk:
+    name: Android aarch64 debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: "true"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.21.0
+          package-manager-cache: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Verify hosted Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ANDROID_SDK_ROOT:-}"
+          test -d "$ANDROID_SDK_ROOT"
+
+          sdkmanager="$(find "$ANDROID_SDK_ROOT/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          adb="$ANDROID_SDK_ROOT/platform-tools/adb"
+          test -n "$sdkmanager"
+          test -x "$sdkmanager"
+          test -x "$adb"
+
+          "$sdkmanager" --version
+          "$adb" --version
+
+      - name: Install source dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+
+      - name: Install stable Rust and Android target
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add aarch64-linux-android
+          rustc --version
+          cargo --version
+
+      - name: Resolve Android NDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate="${ANDROID_NDK_LATEST_HOME:-}"
+          if [ -z "$candidate" ] || [ ! -d "$candidate" ]; then
+            candidate="${ANDROID_NDK_HOME:-}"
+          fi
+          if [ -z "$candidate" ] || [ ! -d "$candidate" ]; then
+            candidate="$(find "${ANDROID_SDK_ROOT}/ndk" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort -V | tail -n 1)"
+          fi
+          if [ -z "$candidate" ] || [ ! -d "$candidate" ]; then
+            echo "No installed Android NDK was found on the runner." >&2
+            exit 1
+          fi
+          echo "NDK_HOME=$candidate" >> "$GITHUB_ENV"
+          echo "Resolved Android NDK: $(basename "$candidate")"
+
+      - name: Generate canonical icon derivatives
+        run: npm run generate:icons
+
+      - name: Initialize generated Android project
+        run: npm run tauri android init -- --ci --skip-targets-install
+
+      - name: Build aarch64 debug APK
+        run: npm run tauri android build -- --debug --apk --target aarch64
+
+      - name: Verify ephemeral CI APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$(find src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | head -n 1)"
+          if [ -z "$apk" ] || [ ! -f "$apk" ]; then
+            echo "Android APK output was not found." >&2
+            exit 1
+          fi
+
+          apksigner="$(find "${ANDROID_SDK_ROOT}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          if [ -z "$apksigner" ] || [ ! -x "$apksigner" ]; then
+            echo "Android apksigner was not found." >&2
+            exit 1
+          fi
+
+          "$apksigner" verify "$apk"
+          sha256sum "$apk"
+          echo "CI-only debug APK verified. No artifact is uploaded or treated as a Development distribution build."
