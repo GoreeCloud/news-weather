@@ -21,6 +21,8 @@ This repository is in Development. No user-facing release is verified.
 - Current Glaze target updated to Glaze V1.7 / 1.7.0 with explicit adoption-required status.
 - Wind-direction, sunrise, and sunset presentation using already-normalized weather data.
 - Up to eight local saved manual weather places with normalization, deduplication, quick switching, removal, and place-text-only storage.
+- Linux and Windows Tauri source compilation CI, including reproducible platform icon generation from the canonical SVG development icon.
+- Privacy-bounded versioned settings export/import with strict schema validation, a 64 KiB import ceiling, and cache-safe manual-place changes.
 
 ## 0.1.0 Development
 
