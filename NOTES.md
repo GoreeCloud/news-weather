@@ -8,7 +8,7 @@
 - Web target from the same frontend foundation.
 - GoreeCloud Feeds remains the news-processing authority.
 - Weather remains provider-abstracted.
-- GLAZE UI V1.6 / 1.6.0 is the current consumer target.
+- Glaze V1.7 / 1.7.0 is the current Official Anchor consumer target; News & Weather remains adoption-required until repository-local acceptance is complete.
 - Platform Contract 0.4 is the current platform-manifest target.
 - AGPL-3.0-or-later is the current default license baseline.
 

@@ -12,7 +12,7 @@ Initial Development applicability evaluation. No integration listed here is impl
 | Privacy Shield | Applicable | Privacy controls, permission/data-minimization contracts, privacy-state presentation. |
 | Wardveil Security | Applicable | Security contracts, protection evidence, safe external-content handling. |
 | Everkeep | Evaluate / likely applicable | Preservation, recovery, portability, and application-state backup boundaries. |
-| Glaze UI | Applicable | Current approved visual, interaction, responsive, and accessibility contract. |
+| Glaze | Applicable | Current approved design, interaction, responsive, accessibility, and experience-system contract; target Glaze V1.7 / 1.7.0. |
 | GoreeCloud Mesh | Evaluate | First-party coordination only where an approved contract adds real value. |
 | GoreeCloud Identity | Conditionally applicable | Optional account-backed synchronization; basic use stays account-optional. |
 | GoreeCloud Policy | Applicable | Governed policy decisions for permissions, data handling, security, and administration where required. |

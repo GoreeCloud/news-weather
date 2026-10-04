@@ -19,6 +19,7 @@ const requiredFiles = [
   "SECURITY.md",
   "THIRD-PARTY-NOTICES.md",
   "docs/WEATHER-PROVIDERS.md",
+  "docs/GLAZE-ADOPTION-1.7.md",
   "LICENSE",
   ".gitignore",
   ".editorconfig",
@@ -64,7 +65,7 @@ if (tauri.productName !== "News & Weather") {
 const platformManifest = await readFile("goreecloud.platform.yaml", "utf8");
 for (const expected of [
   "schema_version: '0.4'",
-  "version: '1.6.0'",
+  "version: '1.7.0'",
   "manager:",
   "privacy_shield:",
   "wardveil_security:",

@@ -392,7 +392,7 @@ Where architecturally applicable, News & Weather should participate in the exist
 
 The application must evaluate integration with:
 
-- Glaze UI.
+- Glaze.
 - GoreeCloud Privacy Shield.
 - Wardveil Security.
 - GoreeCloud Location.
@@ -440,7 +440,7 @@ The application should respect:
 - Reduced-motion preferences.
 - High-contrast needs where supported.
 
-Glaze UI should provide the shared GoreeCloud visual and interaction language.
+Glaze should provide the shared GoreeCloud visual and interaction language. The current shared target is Glaze V1.7 / 1.7.0, with downstream repository-local acceptance required.
 
 ## 16. Offline Behavior
 

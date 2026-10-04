@@ -26,9 +26,9 @@ The product should feel:
 
 ## Visual system
 
-GLAZE UI V1.6 / 1.6.0 is the current consumer-eligible GoreeCloud presentation target.
+Glaze V1.7 / 1.7.0 is the current Official Anchor and consumer-eligible GoreeCloud design-and-experience-system target.
 
-A downstream News & Weather implementation does not inherit Glaze acceptance automatically. Repository-local adoption and acceptance evidence are required.
+News & Weather does not inherit Glaze acceptance automatically. This repository must complete fresh local Glaze 1.7.0 adoption and acceptance evidence before conformance can be claimed.
 
 ## Iconography
 

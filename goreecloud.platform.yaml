@@ -52,12 +52,12 @@ platform_systems:
     notes: Recovery and portability are applicable to eligible durable user state, but no accepted Everkeep backup/restore integration or clean-environment recovery evidence exists.
   glaze_ui:
     result: applicable-blocked
-    version: '1.6.0'
+    version: '1.7.0'
     evidence:
       - BRANDING.md
       - PROJECT-SPECIFICATIONS.md
       - docs/PLATFORM-INTEGRATIONS.md
-    notes: Official consumer target is GLAZE UI V1.6 / 1.6.0. News & Weather has not yet completed repository-local runtime, rendered, accessibility, performance, representative-device, rollback, or product acceptance.
+    notes: Official consumer target is Glaze V1.7 / 1.7.0. News & Weather has not yet completed fresh repository-local runtime, rendered, accessibility, performance, representative-device, rollback, or product acceptance.
   mesh:
     result: applicable-blocked
     version: null
@@ -127,10 +127,10 @@ external_dependencies:
 
 compatibility:
   platform_contract: '0.4'
-  glaze_ui_required: '1.6.0'
+  glaze_ui_required: '1.7.0'
   requires:
     - goreecloud-platform-contract==0.4
-    - glaze-ui==1.6.0
+    - glaze-ui==1.7.0
   provides:
     - news-weather-client
 
@@ -149,7 +149,7 @@ conformance:
     - No accepted Privacy Shield runtime integration.
     - No accepted Wardveil Security runtime integration.
     - No accepted Everkeep backup/restore integration.
-    - GLAZE UI V1.6 adoption and downstream acceptance are incomplete.
+    - Glaze V1.7 / 1.7.0 adoption and downstream acceptance are incomplete.
     - Mesh applicability and runtime integration are incomplete.
     - Identity-backed synchronization integration is incomplete.
     - GoreeCloud Policy runtime integration is incomplete.
