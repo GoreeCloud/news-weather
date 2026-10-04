@@ -1059,3 +1059,11 @@ a.headline-title:focus-visible {
     justify-content: flex-start;
   }
 }
+
+.headline-card .cache-banner {
+  margin-top: 14px;
+}
+
+.page > .cache-banner {
+  margin: 0 0 12px;
+}
