@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import {
   DEFAULT_PREFERENCES,
+  MAX_SAVED_WEATHER_LOCATIONS,
+  addSavedWeatherLocation,
   loadPreferences,
+  normalizeSavedWeatherLocations,
+  removeSavedWeatherLocation,
   savePreferences,
 } from "../src/state/preferences.ts";
 
@@ -52,6 +56,7 @@ test("legacy preferences migrate safely to metric weather-unit defaults", () => 
     onboardingComplete: true,
     hintsEnabled: false,
     manualWeatherLocation: "Jacksonville, FL",
+    savedWeatherLocations: [],
     theme: "dark",
     textSize: "system",
     temperatureUnit: "celsius",
@@ -101,4 +106,50 @@ test("text-size preference persists alongside weather presentation settings", ()
 
   savePreferences(preferences);
   assert.equal(loadPreferences().textSize, "extra-large");
+});
+
+test("saved weather places normalize, deduplicate, and remain bounded", () => {
+  const many = [
+    "  Jacksonville,   FL ",
+    "jacksonville, fl",
+    "Birmingham, AL",
+    "Atlanta, GA",
+    "Nashville, TN",
+    "Orlando, FL",
+    "Tampa, FL",
+    "Miami, FL",
+    "Savannah, GA",
+    "Charleston, SC",
+    42,
+    "",
+  ];
+
+  const normalized = normalizeSavedWeatherLocations(many);
+  assert.deepEqual(normalized.slice(0, 2), ["Jacksonville, FL", "Birmingham, AL"]);
+  assert.equal(normalized.length, MAX_SAVED_WEATHER_LOCATIONS);
+});
+
+test("saved weather place helpers add idempotently and remove by index", () => {
+  let locations = [];
+  locations = addSavedWeatherLocation(locations, "Jacksonville, FL");
+  locations = addSavedWeatherLocation(locations, " jacksonville,   fl ");
+  locations = addSavedWeatherLocation(locations, "Birmingham, AL");
+
+  assert.deepEqual(locations, ["Jacksonville, FL", "Birmingham, AL"]);
+  assert.deepEqual(removeSavedWeatherLocation(locations, 0), ["Birmingham, AL"]);
+  assert.deepEqual(removeSavedWeatherLocation(locations, 99), locations);
+});
+
+test("persisted saved weather places discard invalid entries safely", () => {
+  storage.setItem(
+    "goreecloud.newsweather.preferences.v1",
+    JSON.stringify({
+      savedWeatherLocations: ["  Jacksonville, FL ", null, "JACKSONVILLE, FL", "Birmingham, AL"],
+    }),
+  );
+
+  assert.deepEqual(loadPreferences().savedWeatherLocations, [
+    "Jacksonville, FL",
+    "Birmingham, AL",
+  ]);
 });

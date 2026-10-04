@@ -6,11 +6,13 @@ import type {
 } from "../weather-units";
 
 const STORAGE_KEY = "goreecloud.newsweather.preferences.v1";
+export const MAX_SAVED_WEATHER_LOCATIONS = 8;
 
 export interface Preferences {
   readonly onboardingComplete: boolean;
   readonly hintsEnabled: boolean;
   readonly manualWeatherLocation: string;
+  readonly savedWeatherLocations: readonly string[];
   readonly theme: ThemePreference;
   readonly textSize: TextSizePreference;
   readonly temperatureUnit: TemperatureUnit;
@@ -22,6 +24,7 @@ export const DEFAULT_PREFERENCES: Preferences = Object.freeze({
   onboardingComplete: false,
   hintsEnabled: true,
   manualWeatherLocation: "",
+  savedWeatherLocations: [],
   theme: "system",
   textSize: "system",
   temperatureUnit: "celsius",
@@ -49,6 +52,62 @@ function isPrecipitationUnit(value: unknown): value is PrecipitationUnit {
   return value === "mm" || value === "inches";
 }
 
+export function normalizeWeatherLocation(value: string): string {
+  return value.trim().replaceAll(/\s+/g, " ").slice(0, 160);
+}
+
+export function normalizeSavedWeatherLocations(value: unknown): readonly string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const result: string[] = [];
+  const seen = new Set<string>();
+
+  for (const item of value) {
+    if (typeof item !== "string") {
+      continue;
+    }
+
+    const normalized = normalizeWeatherLocation(item);
+    if (!normalized) {
+      continue;
+    }
+
+    const key = normalized.toLocaleLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    result.push(normalized);
+
+    if (result.length >= MAX_SAVED_WEATHER_LOCATIONS) {
+      break;
+    }
+  }
+
+  return result;
+}
+
+export function addSavedWeatherLocation(
+  locations: readonly string[],
+  location: string,
+): readonly string[] {
+  return normalizeSavedWeatherLocations([...locations, location]);
+}
+
+export function removeSavedWeatherLocation(
+  locations: readonly string[],
+  index: number,
+): readonly string[] {
+  if (!Number.isInteger(index) || index < 0 || index >= locations.length) {
+    return normalizeSavedWeatherLocations(locations);
+  }
+
+  return normalizeSavedWeatherLocations(locations.filter((_, itemIndex) => itemIndex !== index));
+}
+
 export function loadPreferences(): Preferences {
   try {
     const raw = globalThis.localStorage?.getItem(STORAGE_KEY);
@@ -62,8 +121,9 @@ export function loadPreferences(): Preferences {
       hintsEnabled: parsed.hintsEnabled !== false,
       manualWeatherLocation:
         typeof parsed.manualWeatherLocation === "string"
-          ? parsed.manualWeatherLocation.slice(0, 160)
+          ? normalizeWeatherLocation(parsed.manualWeatherLocation)
           : "",
+      savedWeatherLocations: normalizeSavedWeatherLocations(parsed.savedWeatherLocations),
       theme: isThemePreference(parsed.theme) ? parsed.theme : "system",
       textSize: isTextSizePreference(parsed.textSize) ? parsed.textSize : "system",
       temperatureUnit: isTemperatureUnit(parsed.temperatureUnit)
